@@ -1,4 +1,4 @@
-import { IconDefinition } from "@fortawesome/pro-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { FC } from "react";
 import { Col, FormGroup, Label } from "reactstrap";
@@ -18,7 +18,7 @@ const InputColumn = styled(Col)`
   flex: 1 1 auto;
 `;
 
-export const FieldGroup: FC<Props> = (props) => (
+export const FieldGroup: FC<Props> = props => (
   <FormGroup className="row">
     <LabelColumn className="col-sm-4">
       <FontAwesomeIcon icon={props.icon} fixedWidth={true} className="mr-2" />

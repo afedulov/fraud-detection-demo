@@ -9,7 +9,7 @@ export const useLines: UseLines = (transactionsRef, rules, alerts) => {
   const updateLines = useCallback(() => {
     lines.forEach(line => {
       try {
-        line.position();
+        line.line.position();
       } catch {
         // nothing
       }
@@ -52,7 +52,7 @@ export const useLines: UseLines = (transactionsRef, rules, alerts) => {
     setLines(newLines);
 
     return () => {
-      newLines.forEach(line => line.remove());
+      newLines.forEach(line => line.line.remove());
     };
   }, [transactionsRef, rules, alerts]);
 
@@ -69,6 +69,10 @@ type UseLines = (
 };
 
 export interface Line {
-  position: () => void;
-  remove: () => void;
+  line: {
+    color: string;
+    position: () => void;
+    remove: () => void;
+  };
+  ruleId: number;
 }

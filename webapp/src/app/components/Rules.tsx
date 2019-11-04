@@ -1,5 +1,6 @@
+import { library } from "@fortawesome/fontawesome-svg-core";
 import {
-  faArrowToTop,
+  faArrowUp,
   faCalculator,
   faClock,
   faFont,
@@ -7,7 +8,7 @@ import {
   faLaptopCode,
   faLayerGroup,
   IconDefinition,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Axios from "axios";
 import { isArray } from "lodash/fp";
@@ -18,6 +19,9 @@ import styled from "styled-components/macro";
 import { Alert, Rule } from "../interfaces";
 import { CenteredContainer } from "./CenteredContainer";
 import { ScrollingCol } from "./App";
+import { Line } from "app/utils/useLines";
+
+library.add(faInfoCircle);
 
 const badgeColorMap: {
   [s: string]: string;
@@ -33,7 +37,7 @@ const iconMap: {
   aggregateFieldName: faFont,
   aggregatorFunctionType: faCalculator,
   groupingKeyNames: faLayerGroup,
-  limit: faArrowToTop,
+  limit: faArrowUp,
   limitOperatorType: faLaptopCode,
   windowMinutes: faClock,
 };
@@ -98,13 +102,21 @@ export const Rules: FC<Props> = props => {
     Axios.delete(`/api/rules/${id}`).then(props.clearRule(id));
   };
 
-  const triggerAlert = (id: number) => () => fetch(`/api/rules/${id}/alert`).catch();
+  const handleScroll = () => {
+    props.ruleLines.forEach(line => line.line.position());
+    props.alertLines.forEach(line => line.line.position());
+  };
+
   const tooManyRules = props.rules.length > 3;
 
   return (
-    <ScrollingCol xs={{ size: 5, offset: 1 }} onScroll={props.handleScroll}>
+    <ScrollingCol xs={{ size: 5, offset: 1 }} onScroll={handleScroll}>
       {props.rules.map(rule => {
         const payload = JSON.parse(rule.rulePayload);
+
+        if (!payload) {
+          return null;
+        }
 
         return (
           <CenteredContainer
@@ -124,9 +136,6 @@ export const Rules: FC<Props> = props => {
                   {payload.ruleState}
                 </Badge>
               </RuleTitle>
-              <Button size="sm" color="warning" onClick={triggerAlert(rule.id)} className="ml-auto mr-2">
-                Alert
-              </Button>
               <Button size="sm" color="danger" outline={true} onClick={handleDelete(rule.id)}>
                 Delete
               </Button>
@@ -166,5 +175,6 @@ interface Props {
   alerts: Alert[];
   rules: Rule[];
   clearRule: (id: number) => () => void;
-  handleScroll: () => void;
+  ruleLines: Line[];
+  alertLines: Line[];
 }

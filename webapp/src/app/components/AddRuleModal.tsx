@@ -1,16 +1,16 @@
 import {
-  faArrowToTop,
+  faArrowUp,
   faCalculator,
   faClock,
   faFont,
   faInfoCircle,
   faLaptopCode,
   faLayerGroup,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 import Axios from "axios";
 import getFormData from "get-form-data";
 import { isArray, pick } from "lodash/fp";
-import React, { createRef, FC, FormEvent, useState } from "react";
+import React, { createRef, FC, FormEvent, useState, MouseEvent } from "react";
 import CreatableSelect from "react-select/creatable";
 import { Alert, Button, Input, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
 import { Rule, RulePayload } from "../interfaces/";
@@ -33,12 +33,44 @@ type ResponseError = {
   message: string;
 } | null;
 
+const sampleRules: {
+  [n: number]: RulePayload;
+} = {
+  1: {
+    aggregateFieldName: "paymentAmount",
+    aggregatorFunctionType: "SUM",
+    groupingKeyNames: ["payeeId", "beneficiaryId"],
+    limit: 20000000,
+    limitOperatorType: "GREATER",
+    windowMinutes: 43200,
+    ruleState: "ACTIVE",
+  },
+  2: {
+    aggregateFieldName: "COUNT_FLINK",
+    aggregatorFunctionType: "SUM",
+    groupingKeyNames: ["paymentType"],
+    limit: 300,
+    limitOperatorType: "LESS",
+    windowMinutes: 1440,
+    ruleState: "ACTIVE",
+  },
+  3: {
+    aggregateFieldName: "paymentAmount",
+    aggregatorFunctionType: "SUM",
+    groupingKeyNames: ["beneficiaryId"],
+    limit: 10000000,
+    limitOperatorType: "GREATER_EQUAL",
+    windowMinutes: 1440,
+    ruleState: "ACTIVE",
+  },
+};
+
 const keywords = ["beneficiaryId", "payeeId", "paymentAmount", "paymentType"];
 const aggregateKeywords = ["paymentAmount", "COUNT_FLINK", "COUNT_WITH_RESET_FLINK"];
 
 const MySelect = React.memo(CreatableSelect);
 
-export const AddRuleModal: FC<Props> = (props) => {
+export const AddRuleModal: FC<Props> = props => {
   const [error, setError] = useState<ResponseError>(null);
 
   const handleClosed = () => {
@@ -56,7 +88,17 @@ export const AddRuleModal: FC<Props> = (props) => {
 
     setError(null);
     Axios.post<Rule>("/api/rules", body, { headers })
-      .then((response) => props.setRules((rules) => [...rules, { ...response.data, ref: createRef<HTMLDivElement>() }]))
+      .then(response => props.setRules(rules => [...rules, { ...response.data, ref: createRef<HTMLDivElement>() }]))
+      .then(props.onClosed)
+      .catch(setError);
+  };
+
+  const postSampleRule = (ruleId: number) => (e: MouseEvent) => {
+    const rulePayload = JSON.stringify(sampleRules[ruleId]);
+    const body = JSON.stringify({ rulePayload });
+
+    Axios.post<Rule>("/api/rules", body, { headers })
+      .then(response => props.setRules(rules => [...rules, { ...response.data, ref: createRef<HTMLDivElement>() }]))
       .then(props.onClosed)
       .catch(setError);
   };
@@ -93,7 +135,7 @@ export const AddRuleModal: FC<Props> = (props) => {
 
           <FieldGroup label="aggregateFieldName" icon={faFont}>
             <Input name="aggregateFieldName" type="select" bsSize="sm">
-              {aggregateKeywords.map((k) => (
+              {aggregateKeywords.map(k => (
                 <option key={k} value={k}>
                   {k}
                 </option>
@@ -107,7 +149,7 @@ export const AddRuleModal: FC<Props> = (props) => {
               name="groupingKeyNames"
               className="react-select"
               classNamePrefix="react-select"
-              options={keywords.map((k) => ({ value: k, label: k }))}
+              options={keywords.map(k => ({ value: k, label: k }))}
             />
           </FieldGroup>
 
@@ -121,20 +163,33 @@ export const AddRuleModal: FC<Props> = (props) => {
               <option value="LESS">LESS ({"<"})</option>
             </Input>
           </FieldGroup>
-          <FieldGroup label="limit" icon={faArrowToTop}>
+          <FieldGroup label="limit" icon={faArrowUp}>
             <Input name="limit" bsSize="sm" type="number" />
           </FieldGroup>
           <FieldGroup label="windowMinutes" icon={faClock}>
             <Input name="windowMinutes" bsSize="sm" type="number" />
           </FieldGroup>
         </ModalBody>
-        <ModalFooter>
-          <Button color="secondary" onClick={handleClosed} size="sm">
-            Cancel
-          </Button>
-          <Button type="submit" color="primary" size="sm">
-            Submit
-          </Button>
+        <ModalFooter className="justify-content-between">
+          <div>
+            <Button color="secondary" onClick={postSampleRule(1)} size="sm" className="mr-2">
+              Sample Rule 1
+            </Button>
+            <Button color="secondary" onClick={postSampleRule(2)} size="sm" className="mr-2">
+              Sample Rule 2
+            </Button>
+            <Button color="secondary" onClick={postSampleRule(3)} size="sm" className="mr-2">
+              Sample Rule 3
+            </Button>
+          </div>
+          <div>
+            <Button color="secondary" onClick={handleClosed} size="sm" className="mr-2">
+              Cancel
+            </Button>
+            <Button type="submit" color="primary" size="sm">
+              Submit
+            </Button>
+          </div>
         </ModalFooter>
       </form>
     </Modal>

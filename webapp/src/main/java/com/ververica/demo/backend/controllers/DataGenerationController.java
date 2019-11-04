@@ -71,7 +71,7 @@ public class DataGenerationController {
     MessageListenerContainer listenerContainer =
         kafkaListenerEndpointRegistry.getListenerContainer(transactionListenerId);
     // TODO: extract to config
-    if (speed > 20) {
+    if (speed > 50) {
       listenerContainer.stop();
       listenerContainerRunning = false;
     } else if (!listenerContainerRunning) {
