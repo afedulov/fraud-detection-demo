@@ -1,0 +1,6 @@
+dependencies {
+    compile "org.apache.flink:flink-java:$flinkVersion"
+    compile "org.apache.flink:flink-streaming-java_$scalaBinaryVersion:$flinkVersion"
+    compile "org.apache.flink:flink-runtime-web_$scalaBinaryVersion:$flinkVersion"
+    compile "org.apache.flink:flink-runtime_$scalaBinaryVersion:$flinkVersion"
+}

@@ -1,0 +1,23 @@
+steps:
+  - name: 'gcr.io/cloud-builders/npm'
+    entrypoint: npm
+    args: ['install']
+  - name: 'gcr.io/cloud-builders/npm'
+    entrypoint: npm
+    args: ['run', 'postinstall']
+  - name: 'gcr.io/cloud-builders/npm'
+    entrypoint: npm
+    args: ['run', 'build']
+  - name: 'ubuntu'
+    args: ['bash', '-c', 'ls', '-la']
+  - name: maven:3.6.1-jdk-8-slim
+    entrypoint: 'mvn'
+    args: ['--no-transfer-progress', '--batch-mode', 'package']
+  - name: 'ubuntu'
+    args: ['bash', '-c', 'ls', '-la']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/demo-backend', '.']
+
+
+images:
+  - 'gcr.io/$PROJECT_ID/demo-backend'

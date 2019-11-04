@@ -1,0 +1,34 @@
+server:
+  port: 5656
+
+security.auth.enabled: false
+
+kafka:
+  topic:
+    temperature: livetemperature
+    transactions: livetransactions
+    rules: rules
+    alerts: alerts
+    latency: latency
+    current-rules: current-rules
+  listeners:
+    transactions.id: transactions-listener
+
+  bootstrap-servers: localhost:9092
+
+web-socket:
+  topic:
+    transactions: /topic/transactions
+    alerts: /topic/alerts
+    latency: /topic/latency
+
+management.endpoints.web.exposure.include: mappings, loggers
+spring:
+  h2.console.enabled: true
+  thymeleaf.cache: false
+  autoconfigure.exclude: org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
