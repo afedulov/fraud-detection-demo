@@ -55,3 +55,4 @@ node_modules/
 .vscode
 .project
 /bin
+.gradle

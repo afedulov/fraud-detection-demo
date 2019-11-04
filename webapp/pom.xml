@@ -5,11 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.ververica</groupId>
-	<artifactId>demo-backend</artifactId>
+	<artifactId>demo-fraud-webapp</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>demo-backend-frontend</name>
+	<name>webapp</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
