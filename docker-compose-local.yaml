@@ -92,7 +92,7 @@ services:
 
   ### Spring Boot Demo###
   demo:
-    image: demo-backend-local:latest
+    image: demo-fraud-webapp:latest
     hostname: demo
     ports:
       - "5656:5656"

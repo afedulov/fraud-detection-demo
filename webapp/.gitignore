@@ -56,3 +56,7 @@ node_modules/
 .project
 /bin
 .gradle
+
+
+# Temporary
+.npmrc
