@@ -19,6 +19,7 @@ plugins {
 // artifact properties
 group = 'com.ververica.field.dynamicrules'
 version = '0.1-SNAPSHOT'
+jar.archiveName = "${jar.baseName}.${jar.extension}"
 mainClassName = 'com.ververica.field.dynamicrules.Main'
 description = """Dynamic Fraud Detection Demo"""
 
