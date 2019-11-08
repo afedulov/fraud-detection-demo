@@ -1,5 +1,5 @@
+# --- UI Build
 FROM node:10 as ui-build
-RUN mkdir /home/node/app
 WORKDIR /home/node/app
 
 COPY package.json package-lock.json .npmrc tsconfig.json ./
@@ -9,28 +9,23 @@ COPY public public
 COPY src/app src/app
 COPY src/index.tsx src
 COPY src/react-app-env.d.ts src
-
 RUN npm run build
 
-# Start with a base image containing Java runtime
+# --- Maven Build
+FROM maven:3.6.2-jdk-8-openj9 as maven-build
+WORKDIR /home/maven/work
+
+COPY pom.xml .
+RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.1.1:go-offline
+COPY . .
+COPY --from=ui-build /home/node/app/build /home/maven/work/target/classes/static/
+RUN mvn -B -e -o -T 1C verify
+RUN mv target/demo-fraud-webapp*.jar target/demo-fraud-webapp.jar
+
+# --- Main container
 FROM openjdk:8-jdk-alpine as main
-WORKDIR /home/maven/
-COPY src src
-COPY pom.xml ./
-COPY .mvn .mvn
-COPY mvnw ./
 
-COPY --from=ui-build /home/node/app/build /home/maven/target/classes/static/
-RUN ./mvnw install
-RUN mv target/demo-fraud-webapp*.jar demo-fraud-webapp.jar
-
-# Add a volume pointing to /tmp
-VOLUME /tmp
-
-# Make port 5656 available to the world outside this container
+COPY --from=maven-build /home/maven/work/target/demo-fraud-webapp.jar .
 EXPOSE 5656
 
-#ADD target/demo-backend-*.jar demo-backend.jar
-
-# Run the jar file
 ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=dev","-jar","demo-fraud-webapp.jar"]
