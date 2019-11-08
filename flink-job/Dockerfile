@@ -31,10 +31,10 @@ RUN ./gradlew build
 
 # ---
 
-FROM flink:1.9.1
+FROM flink:1.8.2
 
 # # COPY --from=job-build /home/gradle/work/build/dynamic-fraud-detection-demo.jar lib/job.jar
-COPY --from=job-build /home/gradle/app/build/libs/dynamic-fraud-detection-demo.jar lib/job.jar
+COPY --from=job-build /home/gradle/app/build/libs/dynamic-fraud-detection-demo-all.jar lib/job.jar
 # # COPY build/libs/dynamic-fraud-detection-demo.jar lib/job.jar
 COPY docker-entrypoint.sh /
 

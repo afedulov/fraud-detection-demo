@@ -3,7 +3,8 @@ buildscript {
         jcenter() // this applies only to the Gradle 'Shadow' plugin
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
+        // classpath 'com.github.sherter.google-java-format:0.7.1' TODO if Dummy.java is needed if added
     }
 }
 
@@ -18,7 +19,7 @@ plugins {
 
 // artifact properties
 group = 'com.ververica.field.dynamicrules'
-version = '0.1-SNAPSHOT'
+version = ''
 jar.archiveName = "${jar.baseName}.${jar.extension}"
 mainClassName = 'com.ververica.field.dynamicrules.Main'
 description = """Dynamic Fraud Detection Demo"""
