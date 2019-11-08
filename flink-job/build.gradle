@@ -11,7 +11,7 @@ plugins {
     id 'java'
     id 'application'
     // shadow plugin to produce fat JARs
-    id 'com.github.johnrengelman.shadow' version '2.0.4'
+    id 'com.github.johnrengelman.shadow' version '4.0.1'
     id "com.github.sherter.google-java-format" version "0.7.1"
 }
 
@@ -81,7 +81,7 @@ dependencies {
     // --------------------------------------------------------------
     //flinkShadowJar "org.apache.flink:flink-connector-kafka-0.11_${scalaBinaryVersion}:${flinkVersion}"
 
-    compileOnly "org.projectlombok:lombok:1.18.4"
+
 
     compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
     compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
@@ -92,14 +92,14 @@ dependencies {
     // Test dependencies here.
     // testCompile "junit:junit:4.12"
 
-    testCompile "junit:junit:$junitVersion"
-    testCompile "org.apache.flink:flink-test-utils_$scalaVersion:$flinkVersion"
-    testCompile "org.apache.flink:flink-streaming-java_$scalaVersion:$flinkVersion:tests"
-    testCompile "org.apache.flink:flink-runtime_$scalaVersion:$flinkVersion:tests"
-    testCompile "org.mockito:mockito-all:$mockitoVersion"
+    compile "junit:junit:$junitVersion"
+    compile "org.apache.flink:flink-test-utils_$scalaVersion:$flinkVersion"
+    compile "org.apache.flink:flink-streaming-java_$scalaVersion:$flinkVersion:tests"
+    compile "org.apache.flink:flink-runtime_$scalaVersion:$flinkVersion:tests"
+    compile "org.mockito:mockito-all:$mockitoVersion"
 
     //Project dependencies
-    compileOnly "org.projectlombok:lombok:1.18.2"
+    compile "org.projectlombok:lombok:1.18.4"
     flinkShadowJar "org.apache.flink:flink-connector-kafka-0.11_$scalaBinaryVersion:$flinkVersion"
     flinkShadowJar group: 'com.google.cloud', name: 'google-cloud-pubsub', version: '1.51.0'
 }
@@ -128,4 +128,17 @@ configurations { all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-
 
 shadowJar {
     configurations = [project.configurations.flinkShadowJar]
+}
+
+task resolveDependencies {
+    doLast {
+        project.rootProject.allprojects.each { subProject ->
+            subProject.buildscript.configurations.each { configuration ->
+                if (configuration.canBeResolved) configuration.resolve()
+            }
+            subProject.configurations.each { configuration ->
+                if (configuration.canBeResolved) configuration.resolve()
+            }
+        }
+    }
 }
