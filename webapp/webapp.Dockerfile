@@ -2,7 +2,7 @@
 FROM node:10 as ui-build
 WORKDIR /home/node/app
 
-COPY package.json package-lock.json .npmrc tsconfig.json ./
+COPY package.json package-lock.json tsconfig.json ./
 COPY scripts scripts
 RUN npm ci --unsafe-perm
 COPY public public
