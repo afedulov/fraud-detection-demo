@@ -103,6 +103,7 @@ dependencies {
     //Project dependencies
     compile "org.projectlombok:lombok:1.18.4"
     flinkShadowJar "org.apache.flink:flink-connector-kafka-0.11_$scalaBinaryVersion:$flinkVersion"
+    flinkShadowJar "org.apache.flink:flink-connector-gcp-pubsub_$scalaBinaryVersion:$flinkVersion"
     flinkShadowJar group: 'com.google.cloud', name: 'google-cloud-pubsub', version: '1.51.0'
 }
 
