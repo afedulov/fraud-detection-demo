@@ -22,7 +22,8 @@ public class TransactionsSource {
   public static SourceFunction<String> createTransactionsSource(Config config) {
 
     String sourceType = config.get(TRANSACTIONS_SOURCE);
-    TransactionsSource.Type transactionsSourceType =  TransactionsSource.Type.valueOf(sourceType.toUpperCase());
+    TransactionsSource.Type transactionsSourceType =
+        TransactionsSource.Type.valueOf(sourceType.toUpperCase());
 
     int transactionsPerSecond = config.get(RECORDS_PER_SECOND);
 

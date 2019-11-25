@@ -26,8 +26,9 @@ public class Config {
     overrideDefaults(inputParams, boolParams);
   }
 
-  public static Config fromParameters(Parameters parameters){
-    return new Config(parameters, Parameters.STRING_PARAMS, Parameters.INT_PARAMS, Parameters.BOOL_PARAMS);
+  public static Config fromParameters(Parameters parameters) {
+    return new Config(
+        parameters, Parameters.STRING_PARAMS, Parameters.INT_PARAMS, Parameters.BOOL_PARAMS);
   }
 
   private <T> void overrideDefaults(Parameters inputParams, List<Param<T>> params) {

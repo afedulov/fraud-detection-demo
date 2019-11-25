@@ -3,7 +3,6 @@ package com.ververica.field.dynamicrules.functions;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.addToStateValuesSet;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.handleRuleBroadcast;
 
-import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.Alert;
 import com.ververica.field.dynamicrules.FieldsExtractor;
 import com.ververica.field.dynamicrules.Keyed;

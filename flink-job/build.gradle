@@ -4,7 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
-        // classpath 'com.github.sherter.google-java-format:0.7.1' TODO if Dummy.java is needed if added
+        // classpath 'com.github.sherter.google-java-format:0.7.1' TODO check if Dummy.java is needed if added
     }
 }
 
@@ -26,7 +26,7 @@ description = """Dynamic Fraud Detection Demo"""
 
 ext {
     javaVersion = '1.8'
-    flinkVersion = '1.8.2'
+    flinkVersion = '1.9.1'
     scalaBinaryVersion = '2.11'
     slf4jVersion = '1.7.7'
     log4jVersion = '2.10.0'

@@ -52,8 +52,7 @@ public class RulesEvaluator {
     boolean isLocal = config.get(LOCAL_EXECUTION);
 
     // Environment setup
-    StreamExecutionEnvironment env =
-        configureStreamExecutionEnvironment(rulesSourceType, isLocal);
+    StreamExecutionEnvironment env = configureStreamExecutionEnvironment(rulesSourceType, isLocal);
 
     // Streams setup
     DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
@@ -148,7 +147,8 @@ public class RulesEvaluator {
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
     env.getCheckpointConfig().setCheckpointInterval(config.get(CHECKPOINT_INTERVAL));
-    env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.get(MIN_PAUSE_BETWEEN_CHECKPOINTS));
+    env.getCheckpointConfig()
+        .setMinPauseBetweenCheckpoints(config.get(MIN_PAUSE_BETWEEN_CHECKPOINTS));
 
     configureRestartStrategy(env, rulesSourceEnumType);
     return env;

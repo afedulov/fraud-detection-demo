@@ -20,8 +20,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 public class AlertsSink {
 
-  public static SinkFunction<String> createAlertsSink(Config config)
-      throws IOException {
+  public static SinkFunction<String> createAlertsSink(Config config) throws IOException {
 
     String sinkType = config.get(ALERTS_SINK);
     AlertsSink.Type alertsSinkType = AlertsSink.Type.valueOf(sinkType.toUpperCase());
@@ -44,7 +43,6 @@ public class AlertsSink {
             "Source \"" + alertsSinkType + "\" unknown. Known values are:" + Type.values());
     }
   }
-
 
   public static DataStream<String> alertsStreamToJson(DataStream<Alert> alerts) {
     return alerts.flatMap(new JsonSerializer<>(Alert.class)).name("Alerts Deserialization");
