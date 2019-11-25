@@ -1,7 +1,10 @@
 package com.ververica.field.dynamicrules.sources;
 
-import static com.ververica.field.dynamicrules.Main.Params.*;
+import static com.ververica.field.config.Parameters.DATA_TOPIC;
+import static com.ververica.field.config.Parameters.RECORDS_PER_SECOND;
+import static com.ververica.field.config.Parameters.TRANSACTIONS_SOURCE;
 
+import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.KafkaUtils;
 import com.ververica.field.dynamicrules.Transaction;
 import com.ververica.field.dynamicrules.functions.JsonDeserializer;
@@ -10,24 +13,23 @@ import com.ververica.field.dynamicrules.functions.TimeStamper;
 import com.ververica.field.dynamicrules.functions.TransactionsGenerator;
 import java.util.Properties;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 
 public class TransactionsSource {
 
-  public static SourceFunction<String> createTransactionsSource(ParameterTool params) {
+  public static SourceFunction<String> createTransactionsSource(Config config) {
 
-    TransactionsSource.Type transactionsSourceType = getTransactionsSourceTypeFromParams(params);
+    String sourceType = config.get(TRANSACTIONS_SOURCE);
+    TransactionsSource.Type transactionsSourceType =  TransactionsSource.Type.valueOf(sourceType.toUpperCase());
 
-    int transactionsPerSecond =
-        params.getInt(RECORDS_PER_SECOND_PARAM, DEFAULT_TRANSACTIONS_PER_SECOND);
+    int transactionsPerSecond = config.get(RECORDS_PER_SECOND);
 
     switch (transactionsSourceType) {
       case KAFKA:
-        Properties kafkaProps = KafkaUtils.initConsumerProperties(params);
-        String transactionsTopic = params.get(DATA_TOPIC_PARAM, DEFAULT_TRANSACTIONS_TOPIC);
+        Properties kafkaProps = KafkaUtils.initConsumerProperties(config);
+        String transactionsTopic = config.get(DATA_TOPIC);
         FlinkKafkaConsumer011<String> kafkaConsumer =
             new FlinkKafkaConsumer011<>(transactionsTopic, new SimpleStringSchema(), kafkaProps);
         kafkaConsumer.setStartFromLatest();
@@ -35,12 +37,6 @@ public class TransactionsSource {
       default:
         return new JsonGeneratorWrapper<>(new TransactionsGenerator(transactionsPerSecond));
     }
-  }
-
-  private static TransactionsSource.Type getTransactionsSourceTypeFromParams(ParameterTool params) {
-    String sourceTypeString =
-        params.get(TRANSACTIONS_SOURCE_PARAM, TransactionsSource.Type.GENERATOR.toString());
-    return TransactionsSource.Type.valueOf(sourceTypeString.toUpperCase());
   }
 
   public static DataStream<Transaction> stringsStreamToTransactions(

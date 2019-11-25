@@ -1,11 +1,12 @@
 package com.ververica.field.dynamicrules.sinks;
 
-import static com.ververica.field.dynamicrules.Main.Params.DEFAULT_RULES_EXPORT_TOPIC;
-import static com.ververica.field.dynamicrules.Main.Params.RULES_EXPORT_SINK_PARAM;
-import static com.ververica.field.dynamicrules.Main.Params.RULES_EXPORT_TOPIC_PARAM;
+import static com.ververica.field.config.Parameters.GCP_PROJECT_NAME;
+import static com.ververica.field.config.Parameters.GCP_PUBSUB_RULES_SUBSCRIPTION;
+import static com.ververica.field.config.Parameters.RULES_EXPORT_SINK;
+import static com.ververica.field.config.Parameters.RULES_EXPORT_TOPIC;
 
+import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.KafkaUtils;
-import com.ververica.field.dynamicrules.Main.Config;
 import com.ververica.field.dynamicrules.Rule;
 import com.ververica.field.dynamicrules.functions.JsonSerializer;
 import java.io.IOException;
@@ -20,21 +21,22 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 public class CurrentRulesSink {
 
-  public static SinkFunction<String> createRulesSink(ParameterTool params, Config config)
+  public static SinkFunction<String> createRulesSink(Config config)
       throws IOException {
 
-    CurrentRulesSink.Type currentRulesSinkType = getAlertsSinkTypeFromParams(params);
+    String sinkType = config.get(RULES_EXPORT_SINK);
+    CurrentRulesSink.Type currentRulesSinkType = CurrentRulesSink.Type.valueOf(sinkType.toUpperCase());
 
     switch (currentRulesSinkType) {
       case KAFKA:
-        Properties kafkaProps = KafkaUtils.initProducerProperties(params);
-        String alertsTopic = params.get(RULES_EXPORT_TOPIC_PARAM, DEFAULT_RULES_EXPORT_TOPIC);
+        Properties kafkaProps = KafkaUtils.initProducerProperties(config);
+        String alertsTopic = config.get(RULES_EXPORT_TOPIC);
         return new FlinkKafkaProducer011<>(alertsTopic, new SimpleStringSchema(), kafkaProps);
       case PUBSUB:
         return PubSubSink.<String>newBuilder()
             .withSerializationSchema(new SimpleStringSchema())
-            .withProjectName(config.GCP_PROJECT_NAME)
-            .withTopicName(config.GCP_PUBSUB_RULES_EXPORT_TOPIC_NAME)
+            .withProjectName(config.get(GCP_PROJECT_NAME))
+            .withTopicName(config.get(GCP_PUBSUB_RULES_SUBSCRIPTION))
             .build();
       case STDOUT:
         return new PrintSinkFunction<>(true);
@@ -42,12 +44,6 @@ public class CurrentRulesSink {
         throw new IllegalArgumentException(
             "Source \"" + currentRulesSinkType + "\" unknown. Known values are:" + Type.values());
     }
-  }
-
-  private static CurrentRulesSink.Type getAlertsSinkTypeFromParams(ParameterTool params) {
-    String sourceTypeString = params.get(RULES_EXPORT_SINK_PARAM, Type.STDOUT.toString());
-
-    return CurrentRulesSink.Type.valueOf(sourceTypeString.toUpperCase());
   }
 
   public static DataStream<String> rulesStreamToJson(DataStream<Rule> alerts) {

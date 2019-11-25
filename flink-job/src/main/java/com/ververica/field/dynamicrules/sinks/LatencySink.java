@@ -1,15 +1,15 @@
 package com.ververica.field.dynamicrules.sinks;
 
-import static com.ververica.field.dynamicrules.Main.Params.DEFAULT_LATENCY_TOPIC;
-import static com.ververica.field.dynamicrules.Main.Params.LATENCY_SINK_PARAM;
-import static com.ververica.field.dynamicrules.Main.Params.LATENCY_TOPIC_PARAM;
+import static com.ververica.field.config.Parameters.GCP_PROJECT_NAME;
+import static com.ververica.field.config.Parameters.GCP_PUBSUB_LATENCY_SUBSCRIPTION;
+import static com.ververica.field.config.Parameters.LATENCY_SINK;
+import static com.ververica.field.config.Parameters.LATENCY_TOPIC;
 
+import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.KafkaUtils;
-import com.ververica.field.dynamicrules.Main.Config;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.apache.flink.streaming.connectors.gcp.pubsub.PubSubSink;
@@ -17,21 +17,22 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 public class LatencySink {
 
-  public static SinkFunction<String> createLatencySink(ParameterTool params, Config config)
+  public static SinkFunction<String> createLatencySink(Config config)
       throws IOException {
 
-    LatencySink.Type latencySinkType = getLatencySinkTypeFromParams(params);
+    String latencySink = config.get(LATENCY_SINK);
+    LatencySink.Type latencySinkType = LatencySink.Type.valueOf(latencySink.toUpperCase());
 
     switch (latencySinkType) {
       case KAFKA:
-        Properties kafkaProps = KafkaUtils.initProducerProperties(params);
-        String latencyTopic = params.get(LATENCY_TOPIC_PARAM, DEFAULT_LATENCY_TOPIC);
+        Properties kafkaProps = KafkaUtils.initProducerProperties(config);
+        String latencyTopic = config.get(LATENCY_TOPIC);
         return new FlinkKafkaProducer011<>(latencyTopic, new SimpleStringSchema(), kafkaProps);
       case PUBSUB:
         return PubSubSink.<String>newBuilder()
             .withSerializationSchema(new SimpleStringSchema())
-            .withProjectName(config.GCP_PROJECT_NAME)
-            .withTopicName(config.GCP_PUBSUB_LATENCY_TOPIC_NAME)
+            .withProjectName(config.get(GCP_PROJECT_NAME))
+            .withTopicName(config.get(GCP_PUBSUB_LATENCY_SUBSCRIPTION))
             .build();
       case STDOUT:
         return new PrintSinkFunction<>(true);
@@ -39,12 +40,6 @@ public class LatencySink {
         throw new IllegalArgumentException(
             "Source \"" + latencySinkType + "\" unknown. Known values are:" + Type.values());
     }
-  }
-
-  private static LatencySink.Type getLatencySinkTypeFromParams(ParameterTool params) {
-    String sourceTypeString = params.get(LATENCY_SINK_PARAM, Type.STDOUT.toString());
-
-    return LatencySink.Type.valueOf(sourceTypeString.toUpperCase());
   }
 
   public enum Type {

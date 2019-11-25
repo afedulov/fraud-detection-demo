@@ -1,27 +1,29 @@
 package com.ververica.field.dynamicrules;
 
-import static com.ververica.field.dynamicrules.Main.Params.*;
+import static com.ververica.field.config.Parameters.KAFKA_HOST;
+import static com.ververica.field.config.Parameters.KAFKA_PORT;
+import static com.ververica.field.config.Parameters.OFFSET;
 
+import com.ververica.field.config.Config;
 import java.util.Properties;
-import org.apache.flink.api.java.utils.ParameterTool;
 
 public class KafkaUtils {
 
-  public static Properties initConsumerProperties(ParameterTool params) {
-    Properties kafkaProps = initProperties(params);
-    String offset = params.get(OFFSET_PARAM, DEFAULT_TOPIC_OFFSET);
+  public static Properties initConsumerProperties(Config config) {
+    Properties kafkaProps = initProperties(config);
+    String offset = config.get(OFFSET);
     kafkaProps.setProperty("auto.offset.reset", offset);
     return kafkaProps;
   }
 
-  public static Properties initProducerProperties(ParameterTool params) {
+  public static Properties initProducerProperties(Config params) {
     return initProperties(params);
   }
 
-  private static Properties initProperties(ParameterTool params) {
+  private static Properties initProperties(Config config) {
     Properties kafkaProps = new Properties();
-    String kafkaHost = params.get(KAFKA_HOST_PARAM, DEFAULT_KAFKA_HOST);
-    int kafkaPort = params.getInt(KAFKA_PORT_PARAM, DEFAULT_KAFKA_PORT);
+    String kafkaHost = config.get(KAFKA_HOST);
+    int kafkaPort = config.get(KAFKA_PORT);
     String servers = String.format("%s:%s", kafkaHost, kafkaPort);
     kafkaProps.setProperty("bootstrap.servers", servers);
     return kafkaProps;

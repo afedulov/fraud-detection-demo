@@ -1,6 +1,5 @@
 package com.ververica.field.dynamicrules;
 
-import com.ververica.field.dynamicrules.Main.Config;
 import com.ververica.field.dynamicrules.RulesEvaluator.Descriptors;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
 import com.ververica.field.dynamicrules.functions.DynamicRuleFunction;
@@ -22,12 +21,6 @@ import org.junit.Test;
 
 /** Tests for the {@link RulesEvaluator}. */
 public class RulesEvaluatorTest {
-
-  public class TestConfig extends Config {
-    // Change default config here, if needed
-  }
-
-  private final Config config = new TestConfig();
 
   @Test
   // TODO: Key by multiple
@@ -96,7 +89,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(config),
+                new DynamicRuleFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,
@@ -139,7 +132,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(config),
+                new DynamicRuleFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,
@@ -184,7 +177,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(config),
+                new DynamicRuleFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,

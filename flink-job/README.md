@@ -3,7 +3,7 @@
 ## Introduction
 
 
-### Instructions:
+### Instructions (local execution with netcat):
 
 1. Start `netcat`:
 ```

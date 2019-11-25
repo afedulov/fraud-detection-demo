@@ -1,8 +1,13 @@
 package com.ververica.field.dynamicrules;
 
-import static com.ververica.field.dynamicrules.Main.Params.*;
+import static com.ververica.field.config.Parameters.CHECKPOINT_INTERVAL;
+import static com.ververica.field.config.Parameters.LOCAL_EXECUTION;
+import static com.ververica.field.config.Parameters.MIN_PAUSE_BETWEEN_CHECKPOINTS;
+import static com.ververica.field.config.Parameters.OUT_OF_ORDERNESS;
+import static com.ververica.field.config.Parameters.RULES_SOURCE;
+import static com.ververica.field.config.Parameters.SOURCE_PARALLELISM;
 
-import com.ververica.field.dynamicrules.Main.Config;
+import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.functions.AverageAggregate;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
 import com.ververica.field.dynamicrules.functions.DynamicRuleFunction;
@@ -18,7 +23,6 @@ import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.ConfigConstants;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -35,29 +39,25 @@ import org.apache.flink.util.OutputTag;
 @Slf4j
 public class RulesEvaluator {
 
-  // TODO: think about using ConfigOptions, like in JobManagerOptions
   private Config config;
 
   RulesEvaluator(Config config) {
     this.config = config;
   }
 
-  public void run(String[] args) throws Exception {
+  public void run() throws Exception {
 
-    // Parameters
-    ParameterTool params = ParameterTool.fromArgs(args);
-    RulesSource.Type rulesSourceEnumType = getRulesSourceTypeFromParams(params);
+    RulesSource.Type rulesSourceType = getRulesSourceType();
 
-    boolean isLocal = params.getBoolean(LOCAL_EXECUTION_PARAM, false);
+    boolean isLocal = config.get(LOCAL_EXECUTION);
+
     // Environment setup
     StreamExecutionEnvironment env =
-        configureStreamExecutionEnvironment(rulesSourceEnumType, isLocal);
-    //    ExecutionConfig executionConfig = env.getConfig();
-    //    executionConfig.setParallelism(1);
+        configureStreamExecutionEnvironment(rulesSourceType, isLocal);
 
     // Streams setup
-    DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(params, env);
-    DataStream<Transaction> transactions = getTransactionsStream(params, env);
+    DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
+    DataStream<Transaction> transactions = getTransactionsStream(env);
 
     // (Duplication is required because there is currently no way to cross-access broadcast state
     // between process functions)
@@ -72,7 +72,7 @@ public class RulesEvaluator {
             .name("Dynamic Partitioning Function")
             .keyBy((keyed) -> keyed.getKey())
             .connect(rulesStream)
-            .process(new DynamicRuleFunction(config))
+            .process(new DynamicRuleFunction())
             .name("Dynamic Rule Evaluation Function");
 
     DataStream<String> allRuleEvaluations =
@@ -93,24 +93,23 @@ public class RulesEvaluator {
     currentRulesJson.print();
 
     alertsJson
-        .addSink(AlertsSink.createAlertsSink(params, config))
+        .addSink(AlertsSink.createAlertsSink(config))
         .setParallelism(1)
         .name("Alerts JSON Sink");
-    currentRulesJson.addSink(CurrentRulesSink.createRulesSink(params, config)).setParallelism(1);
+    currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).setParallelism(1);
 
     // TODO: add DoubleSerializationSchema and switch sink type
     DataStream<String> latencies =
         latency.timeWindowAll(Time.seconds(10)).aggregate(new AverageAggregate());
-    latencies.addSink(LatencySink.createLatencySink(params, config));
+    latencies.addSink(LatencySink.createLatencySink(config));
 
     env.execute();
   }
 
-  private DataStream<Transaction> getTransactionsStream(
-      ParameterTool params, StreamExecutionEnvironment env) {
+  private DataStream<Transaction> getTransactionsStream(StreamExecutionEnvironment env) {
     // Data stream setup
-    SourceFunction<String> transactionSource = TransactionsSource.createTransactionsSource(params);
-    int sourceParallelism = params.getInt("source-par", DEFAULT_SOURCE_PARALLELISM);
+    SourceFunction<String> transactionSource = TransactionsSource.createTransactionsSource(config);
+    int sourceParallelism = config.get(SOURCE_PARALLELISM);
     DataStream<String> transactionsStringsStream =
         env.addSource(transactionSource)
             .name("Transactions Source")
@@ -118,23 +117,22 @@ public class RulesEvaluator {
     DataStream<Transaction> transactionsStream =
         TransactionsSource.stringsStreamToTransactions(transactionsStringsStream);
     return transactionsStream.assignTimestampsAndWatermarks(
-        createBoundedOutOfOrdernessTimestampExtractor(config.OUT_OF_ORDERNESS));
+        createBoundedOutOfOrdernessTimestampExtractor(config.get(OUT_OF_ORDERNESS)));
   }
 
-  private DataStream<Rule> getRulesUpdateStream(
-      ParameterTool params, StreamExecutionEnvironment env) throws IOException {
+  private DataStream<Rule> getRulesUpdateStream(StreamExecutionEnvironment env) throws IOException {
 
-    RulesSource.Type rulesSourceEnumType = getRulesSourceTypeFromParams(params);
+    RulesSource.Type rulesSourceEnumType = getRulesSourceType();
 
-    SourceFunction<String> rulesSource = RulesSource.createRulesSource(params, config);
+    SourceFunction<String> rulesSource = RulesSource.createRulesSource(config);
     DataStream<String> rulesStrings =
         env.addSource(rulesSource).name(rulesSourceEnumType.getName()).setParallelism(1);
     return RulesSource.stringsStreamToRules(rulesStrings);
   }
 
-  private static RulesSource.Type getRulesSourceTypeFromParams(ParameterTool params) {
-    String sourceTypeString = params.get(RULES_SOURCE_PARAM, RulesSource.Type.SOCKET.toString());
-    return RulesSource.Type.valueOf(sourceTypeString.toUpperCase());
+  private RulesSource.Type getRulesSourceType() {
+    String rulesSource = config.get(RULES_SOURCE);
+    return RulesSource.Type.valueOf(rulesSource.toUpperCase());
   }
 
   private StreamExecutionEnvironment configureStreamExecutionEnvironment(
@@ -149,8 +147,8 @@ public class RulesEvaluator {
             : StreamExecutionEnvironment.getExecutionEnvironment();
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-    env.getCheckpointConfig().setCheckpointInterval(config.CHECKPOINT_INTERVAL);
-    env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.MIN_PAUSE_BETWEEN_CHECKPOINTS);
+    env.getCheckpointConfig().setCheckpointInterval(config.get(CHECKPOINT_INTERVAL));
+    env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.get(MIN_PAUSE_BETWEEN_CHECKPOINTS));
 
     configureRestartStrategy(env, rulesSourceEnumType);
     return env;

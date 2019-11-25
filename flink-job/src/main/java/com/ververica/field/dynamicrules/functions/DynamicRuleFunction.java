@@ -3,10 +3,10 @@ package com.ververica.field.dynamicrules.functions;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.addToStateValuesSet;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.handleRuleBroadcast;
 
+import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.Alert;
 import com.ververica.field.dynamicrules.FieldsExtractor;
 import com.ververica.field.dynamicrules.Keyed;
-import com.ververica.field.dynamicrules.Main.Config;
 import com.ververica.field.dynamicrules.Rule;
 import com.ververica.field.dynamicrules.Rule.ControlType;
 import com.ververica.field.dynamicrules.Rule.RuleState;
@@ -38,14 +38,9 @@ public class DynamicRuleFunction
 
   private static final String COUNT = "COUNT_FLINK";
   private static final String COUNT_WITH_RESET = "COUNT_WITH_RESET_FLINK";
-  private Config config;
 
   public final int WIDEST_RULE_KEY = Integer.MIN_VALUE;
   public final int CLEAR_STATE_COMMAND_KEY = Integer.MIN_VALUE + 1;
-
-  public DynamicRuleFunction(Config config) {
-    this.config = config;
-  }
 
   private transient MapState<Long, Set<Transaction>> windowState;
   private Meter alertMeter;

@@ -1,15 +1,20 @@
 package com.ververica.field.dynamicrules.sources;
 
+import static com.ververica.field.config.Parameters.DATA_TOPIC;
+import static com.ververica.field.config.Parameters.GCP_PROJECT_NAME;
+import static com.ververica.field.config.Parameters.GCP_PUBSUB_RULES_SUBSCRIPTION;
+import static com.ververica.field.config.Parameters.RULES_SOURCE;
+import static com.ververica.field.config.Parameters.SOCKET_PORT;
+
+import com.ververica.field.config.Config;
+import com.ververica.field.config.Parameters;
 import com.ververica.field.dynamicrules.KafkaUtils;
-import com.ververica.field.dynamicrules.Main.Config;
-import com.ververica.field.dynamicrules.Main.Params;
 import com.ververica.field.dynamicrules.Rule;
 import com.ververica.field.dynamicrules.functions.RuleDeserializer;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.source.SocketTextStreamFunction;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -22,15 +27,16 @@ public class RulesSource {
 
   private static final int RULES_STREAM_PARALLELISM = 1;
 
-  public static SourceFunction<String> createRulesSource(ParameterTool params, Config config)
+  public static SourceFunction<String> createRulesSource(Config config)
       throws IOException {
 
-    RulesSource.Type rulesSourceType = getRulesSourceTypeFromParams(params);
+    String sourceType = config.get(RULES_SOURCE);
+    RulesSource.Type rulesSourceType = RulesSource.Type.valueOf(sourceType.toUpperCase());
 
     switch (rulesSourceType) {
       case KAFKA:
-        Properties kafkaProps = KafkaUtils.initConsumerProperties(params);
-        String rulesTopic = params.get(Params.DATA_TOPIC_PARAM, Params.DEFAULT_RULES_TOPIC);
+        Properties kafkaProps = KafkaUtils.initConsumerProperties(config);
+        String rulesTopic = config.get(DATA_TOPIC);
         FlinkKafkaConsumer011<String> kafkaConsumer =
             new FlinkKafkaConsumer011<>(rulesTopic, new SimpleStringSchema(), kafkaProps);
         kafkaConsumer.setStartFromLatest();
@@ -38,21 +44,15 @@ public class RulesSource {
       case PUBSUB:
         return PubSubSource.<String>newBuilder()
             .withDeserializationSchema(new SimpleStringSchema())
-            .withProjectName(config.GCP_PROJECT_NAME)
-            .withSubscriptionName(config.GCP_PUBSUB_RULES_SUBSCRIPTION_NAME)
+            .withProjectName(config.get(GCP_PROJECT_NAME))
+            .withSubscriptionName(config.get(GCP_PUBSUB_RULES_SUBSCRIPTION))
             .build();
       case SOCKET:
-        return new SocketTextStreamFunction("localhost", config.SOCKET_PORT, "\n", -1);
+        return new SocketTextStreamFunction("localhost", config.get(SOCKET_PORT), "\n", -1);
       default:
         throw new IllegalArgumentException(
             "Source \"" + rulesSourceType + "\" unknown. Known values are:" + Type.values());
     }
-  }
-
-  private static RulesSource.Type getRulesSourceTypeFromParams(ParameterTool params) {
-    String sourceTypeString = params.get(Params.RULES_SOURCE_PARAM, Type.SOCKET.toString());
-
-    return RulesSource.Type.valueOf(sourceTypeString.toUpperCase());
   }
 
   public static DataStream<Rule> stringsStreamToRules(DataStream<String> ruleStrings) {
