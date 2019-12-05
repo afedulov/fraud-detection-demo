@@ -66,17 +66,6 @@ public class DynamicRuleFunction
 
     long currentEventTime = value.getWrapped().getEventTime();
 
-    /*
-        Rule cleanupCommand =
-            ctx.getBroadcastState(Descriptors.rulesDescriptor).get(CLEAR_STATE_COMMAND_KEY);
-
-        if (cleanupCommand != null && cleanupCommand.getControlType() == CLEAR_STATE_ALL) {
-          evictAllStateElements();
-          log.info("Removed state for key: {}", value.getKey());
-          return;
-        }
-    */
-
     addToStateValuesSet(windowState, currentEventTime, value.getWrapped());
 
     Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());
