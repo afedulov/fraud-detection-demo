@@ -3,9 +3,10 @@ server:
 
 security.auth.enabled: false
 
+transactionsRateDisplayLimit: 50
+
 kafka:
   topic:
-    temperature: livetemperature
     transactions: livetransactions
     rules: rules
     alerts: alerts
