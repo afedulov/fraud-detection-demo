@@ -21,6 +21,7 @@ import static com.ververica.field.config.Parameters.DATA_TOPIC;
 import static com.ververica.field.config.Parameters.GCP_PROJECT_NAME;
 import static com.ververica.field.config.Parameters.GCP_PUBSUB_RULES_SUBSCRIPTION;
 import static com.ververica.field.config.Parameters.RULES_SOURCE;
+import static com.ververica.field.config.Parameters.RULES_TOPIC;
 import static com.ververica.field.config.Parameters.SOCKET_PORT;
 
 import com.ververica.field.config.Config;
@@ -51,7 +52,7 @@ public class RulesSource {
     switch (rulesSourceType) {
       case KAFKA:
         Properties kafkaProps = KafkaUtils.initConsumerProperties(config);
-        String rulesTopic = config.get(DATA_TOPIC);
+        String rulesTopic = config.get(RULES_TOPIC);
         FlinkKafkaConsumer011<String> kafkaConsumer =
             new FlinkKafkaConsumer011<>(rulesTopic, new SimpleStringSchema(), kafkaProps);
         kafkaConsumer.setStartFromLatest();
