@@ -8,12 +8,10 @@ import static com.ververica.field.config.Parameters.RULES_SOURCE;
 import static com.ververica.field.config.Parameters.SOURCE_PARALLELISM;
 
 import com.ververica.field.config.Config;
-import com.ververica.field.dynamicrules.functions.AverageAggregate;
+import com.ververica.field.dynamicrules.functions.DynamicAlertFunction;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
-import com.ververica.field.dynamicrules.functions.DynamicRuleFunction;
 import com.ververica.field.dynamicrules.sinks.AlertsSink;
 import com.ververica.field.dynamicrules.sinks.CurrentRulesSink;
-import com.ververica.field.dynamicrules.sinks.LatencySink;
 import com.ververica.field.dynamicrules.sources.RulesSource;
 import com.ververica.field.dynamicrules.sources.TransactionsSource;
 import java.io.IOException;
@@ -52,8 +50,7 @@ public class RulesEvaluator {
     boolean isLocal = config.get(LOCAL_EXECUTION);
 
     // Environment setup
-    StreamExecutionEnvironment env =
-        configureStreamExecutionEnvironment(rulesSourceType, isLocal);
+    StreamExecutionEnvironment env = configureStreamExecutionEnvironment(rulesSourceType, isLocal);
 
     // Streams setup
     DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
@@ -69,39 +66,40 @@ public class RulesEvaluator {
         transactions
             .connect(keysStream)
             .process(new DynamicKeyFunction())
-            .name("Dynamic Partitioning Function")
+            .name("Dynamic Key Function")
             .keyBy((keyed) -> keyed.getKey())
             .connect(rulesStream)
-            .process(new DynamicRuleFunction())
-            .name("Dynamic Rule Evaluation Function");
+            .process(new DynamicAlertFunction())
+            .name("Dynamic Alert Function");
 
-    DataStream<String> allRuleEvaluations =
-        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.demoSinkTag);
+    //    DataStream<String> allRuleEvaluations =
+    //        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.demoSinkTag);
 
-    DataStream<Long> latency =
-        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.latencySinkTag);
+    //    DataStream<Long> latency =
+    //        ((SingleOutputStreamOperator<Alert>)
+    // alerts).getSideOutput(Descriptors.latencySinkTag);
 
-    DataStream<Rule> currentRules =
-        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.currentRulesSinkTag);
+//    DataStream<Rule> currentRules =
+//        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.currentRulesSinkTag);
 
-    alerts.print().name("Alert STDOUT Sink");
-    allRuleEvaluations.print().setParallelism(1).name("Rule Evaluation Sink");
+    //    alerts.print().name("Alert STDOUT Sink");
+    //    allRuleEvaluations.print().setParallelism(1).name("Rule Evaluation Sink");
 
     DataStream<String> alertsJson = AlertsSink.alertsStreamToJson(alerts);
-    DataStream<String> currentRulesJson = CurrentRulesSink.rulesStreamToJson(currentRules);
+//    DataStream<String> currentRulesJson = CurrentRulesSink.rulesStreamToJson(currentRules);
 
-    currentRulesJson.print();
+//    currentRulesJson.print();
 
-    alertsJson
-        .addSink(AlertsSink.createAlertsSink(config))
-        .setParallelism(1)
-        .name("Alerts JSON Sink");
-    currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).setParallelism(1);
+        alertsJson
+            .addSink(AlertsSink.createAlertsSink(config))
+            .setParallelism(1)
+            .name("Alerts Sink");
+//    currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).name("Alerts Sink").setParallelism(1);
 
     // TODO: add DoubleSerializationSchema and switch sink type
-    DataStream<String> latencies =
-        latency.timeWindowAll(Time.seconds(10)).aggregate(new AverageAggregate());
-    latencies.addSink(LatencySink.createLatencySink(config));
+    //    DataStream<String> latencies =
+    //        latency.timeWindowAll(Time.seconds(10)).aggregate(new AverageAggregate());
+    //    latencies.addSink(LatencySink.createLatencySink(config));
 
     env.execute();
   }
@@ -148,7 +146,8 @@ public class RulesEvaluator {
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
     env.getCheckpointConfig().setCheckpointInterval(config.get(CHECKPOINT_INTERVAL));
-    env.getCheckpointConfig().setMinPauseBetweenCheckpoints(config.get(MIN_PAUSE_BETWEEN_CHECKPOINTS));
+    env.getCheckpointConfig()
+        .setMinPauseBetweenCheckpoints(config.get(MIN_PAUSE_BETWEEN_CHECKPOINTS));
 
     configureRestartStrategy(env, rulesSourceEnumType);
     return env;

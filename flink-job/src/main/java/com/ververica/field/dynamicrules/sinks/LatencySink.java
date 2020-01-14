@@ -17,8 +17,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 public class LatencySink {
 
-  public static SinkFunction<String> createLatencySink(Config config)
-      throws IOException {
+  public static SinkFunction<String> createLatencySink(Config config) throws IOException {
 
     String latencySink = config.get(LATENCY_SINK);
     LatencySink.Type latencySinkType = LatencySink.Type.valueOf(latencySink.toUpperCase());

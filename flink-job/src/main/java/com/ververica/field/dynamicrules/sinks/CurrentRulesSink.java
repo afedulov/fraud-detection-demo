@@ -12,7 +12,6 @@ import com.ververica.field.dynamicrules.functions.JsonSerializer;
 import java.io.IOException;
 import java.util.Properties;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
-import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -21,11 +20,11 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer011;
 
 public class CurrentRulesSink {
 
-  public static SinkFunction<String> createRulesSink(Config config)
-      throws IOException {
+  public static SinkFunction<String> createRulesSink(Config config) throws IOException {
 
     String sinkType = config.get(RULES_EXPORT_SINK);
-    CurrentRulesSink.Type currentRulesSinkType = CurrentRulesSink.Type.valueOf(sinkType.toUpperCase());
+    CurrentRulesSink.Type currentRulesSinkType =
+        CurrentRulesSink.Type.valueOf(sinkType.toUpperCase());
 
     switch (currentRulesSinkType) {
       case KAFKA:

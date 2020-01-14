@@ -26,5 +26,4 @@ public class Param<T> {
   public static Param<Boolean> bool(String name, Boolean defaultValue) {
     return new Param<>(name, defaultValue, Boolean.class);
   }
-
 }

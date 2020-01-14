@@ -7,7 +7,6 @@ import static com.ververica.field.config.Parameters.RULES_SOURCE;
 import static com.ververica.field.config.Parameters.SOCKET_PORT;
 
 import com.ververica.field.config.Config;
-import com.ververica.field.config.Parameters;
 import com.ververica.field.dynamicrules.KafkaUtils;
 import com.ververica.field.dynamicrules.Rule;
 import com.ververica.field.dynamicrules.functions.RuleDeserializer;
@@ -27,8 +26,7 @@ public class RulesSource {
 
   private static final int RULES_STREAM_PARALLELISM = 1;
 
-  public static SourceFunction<String> createRulesSource(Config config)
-      throws IOException {
+  public static SourceFunction<String> createRulesSource(Config config) throws IOException {
 
     String sourceType = config.get(RULES_SOURCE);
     RulesSource.Type rulesSourceType = RulesSource.Type.valueOf(sourceType.toUpperCase());

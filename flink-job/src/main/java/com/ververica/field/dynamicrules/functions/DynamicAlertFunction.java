@@ -3,7 +3,6 @@ package com.ververica.field.dynamicrules.functions;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.addToStateValuesSet;
 import static com.ververica.field.dynamicrules.functions.ProcessingUtils.handleRuleBroadcast;
 
-import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.Alert;
 import com.ververica.field.dynamicrules.FieldsExtractor;
 import com.ververica.field.dynamicrules.Keyed;
@@ -32,7 +31,7 @@ import org.apache.flink.util.Collector;
 
 // TODO: For a more generic implementation consider using a composite key instead of String
 @Slf4j
-public class DynamicRuleFunction
+public class DynamicAlertFunction
     extends KeyedBroadcastProcessFunction<
         String, Keyed<Transaction, String, Integer>, Rule, Alert> {
 

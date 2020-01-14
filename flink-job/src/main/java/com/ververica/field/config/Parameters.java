@@ -31,7 +31,7 @@ public class Parameters {
     return param.getType().cast(value);
   }
 
-  public static Parameters fromArgs(String[] args){
+  public static Parameters fromArgs(String[] args) {
     ParameterTool tool = ParameterTool.fromArgs(args);
     return new Parameters(tool);
   }
@@ -71,7 +71,6 @@ public class Parameters {
   public static final Param<String> LATENCY_SINK = Param.string("latency-sink", "STDOUT");
   public static final Param<String> RULES_EXPORT_SINK = Param.string("rules-export-sink", "STDOUT");
 
-
   public static final Param<Integer> RECORDS_PER_SECOND = Param.integer("records-per-second", 2);
 
   public static final Param<Boolean> LOCAL_EXECUTION = Param.bool("local", false);
@@ -83,27 +82,27 @@ public class Parameters {
       Param.integer("min-pause-btwn-checkpoints", 60_000_0);
   public static final Param<Integer> OUT_OF_ORDERNESS = Param.integer("out-of-orderdness", 500);
 
-//  List<Param> list = Arrays.asList(new String[]{"foo", "bar"});
-
+  //  List<Param> list = Arrays.asList(new String[]{"foo", "bar"});
 
   public static final List<Param<String>> STRING_PARAMS =
-       Arrays.asList(KAFKA_HOST,
-           DATA_TOPIC,
-           ALERTS_TOPIC,
-           RULES_TOPIC,
-           LATENCY_TOPIC,
-           RULES_EXPORT_TOPIC,
-           OFFSET,
-           GCP_PROJECT_NAME,
-           GCP_PUBSUB_RULES_SUBSCRIPTION,
-           GCP_PUBSUB_ALERTS_SUBSCRIPTION,
-           GCP_PUBSUB_LATENCY_SUBSCRIPTION,
-           GCP_PUBSUB_RULES_EXPORT_SUBSCRIPTION,
-           RULES_SOURCE,
-           TRANSACTIONS_SOURCE,
-           ALERTS_SINK,
-           LATENCY_SINK,
-           RULES_EXPORT_SINK);
+      Arrays.asList(
+          KAFKA_HOST,
+          DATA_TOPIC,
+          ALERTS_TOPIC,
+          RULES_TOPIC,
+          LATENCY_TOPIC,
+          RULES_EXPORT_TOPIC,
+          OFFSET,
+          GCP_PROJECT_NAME,
+          GCP_PUBSUB_RULES_SUBSCRIPTION,
+          GCP_PUBSUB_ALERTS_SUBSCRIPTION,
+          GCP_PUBSUB_LATENCY_SUBSCRIPTION,
+          GCP_PUBSUB_RULES_EXPORT_SUBSCRIPTION,
+          RULES_SOURCE,
+          TRANSACTIONS_SOURCE,
+          ALERTS_SINK,
+          LATENCY_SINK,
+          RULES_EXPORT_SINK);
 
   public static final List<Param<Integer>> INT_PARAMS =
       Arrays.asList(
