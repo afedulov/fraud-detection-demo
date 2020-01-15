@@ -75,7 +75,7 @@ public class Parameters {
 
   public static final Param<Boolean> LOCAL_EXECUTION = Param.bool("local", false);
 
-  public static final Param<Integer> SOURCE_PARALLELISM = Param.integer("source-parallelism", 2);
+  public static final Param<Integer> SOURCE_PARALLELISM = Param.integer("source-parallelism", 12);
   public static final Param<Integer> CHECKPOINT_INTERVAL =
       Param.integer("checkpoint-interval", 60_000_0);
   public static final Param<Integer> MIN_PAUSE_BETWEEN_CHECKPOINTS =
