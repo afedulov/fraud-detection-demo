@@ -1,15 +1,3 @@
-# FROM gradle:4.4-jdk8 as job-build
-# RUN mkdir /home/gradle/app
-# WORKDIR /home/gradle/app
-#
-# COPY *.gradle ./
-# COPY gradlew ./
-# COPY gradle gradle
-# RUN ./gradlew --no-daemon build || return 0
-# COPY src src
-# RUN ./gradlew --no-daemon build
-
-
 FROM openjdk:8 AS job-build
 WORKDIR /home/gradle/app/
 

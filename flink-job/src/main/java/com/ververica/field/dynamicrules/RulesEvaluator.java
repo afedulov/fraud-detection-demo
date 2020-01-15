@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,7 +48,6 @@ import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -85,10 +85,12 @@ public class RulesEvaluator {
         transactions
             .connect(keysStream)
             .process(new DynamicKeyFunction())
+            .uid("DynamicKeyFunction")
             .name("Dynamic Partitioning Function")
             .keyBy((keyed) -> keyed.getKey())
             .connect(rulesStream)
             .process(new DynamicRuleFunction())
+            .uid("DynamicRuleFunction")
             .name("Dynamic Rule Evaluation Function");
 
     DataStream<String> allRuleEvaluations =
@@ -114,12 +116,14 @@ public class RulesEvaluator {
         .name("Alerts JSON Sink");
     currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).setParallelism(1);
 
-    // TODO: add DoubleSerializationSchema and switch sink type
     DataStream<String> latencies =
-        latency.timeWindowAll(Time.seconds(10)).aggregate(new AverageAggregate());
+        latency
+            .timeWindowAll(Time.seconds(10))
+            .aggregate(new AverageAggregate())
+            .map(String::valueOf);
     latencies.addSink(LatencySink.createLatencySink(config));
 
-    env.execute();
+    env.execute("Fraud Detection Engine");
   }
 
   private DataStream<Transaction> getTransactionsStream(StreamExecutionEnvironment env) {
@@ -133,7 +137,7 @@ public class RulesEvaluator {
     DataStream<Transaction> transactionsStream =
         TransactionsSource.stringsStreamToTransactions(transactionsStringsStream);
     return transactionsStream.assignTimestampsAndWatermarks(
-        createBoundedOutOfOrdernessTimestampExtractor(config.get(OUT_OF_ORDERNESS)));
+        new SimpleBoundedOutOfOrdernessTimestampExtractor<>(config.get(OUT_OF_ORDERNESS)));
   }
 
   private DataStream<Rule> getRulesUpdateStream(StreamExecutionEnvironment env) throws IOException {
@@ -153,7 +157,6 @@ public class RulesEvaluator {
 
   private StreamExecutionEnvironment configureStreamExecutionEnvironment(
       RulesSource.Type rulesSourceEnumType, boolean isLocal) {
-    //    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     Configuration flinkConfig = new Configuration();
     flinkConfig.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER, true);
 
@@ -171,15 +174,17 @@ public class RulesEvaluator {
     return env;
   }
 
-  private AssignerWithPeriodicWatermarks<Transaction> createBoundedOutOfOrdernessTimestampExtractor(
-      int outOfOrderness) {
-    return new BoundedOutOfOrdernessTimestampExtractor<Transaction>(
-        Time.of(outOfOrderness, TimeUnit.MILLISECONDS)) {
-      @Override
-      public long extractTimestamp(Transaction element) {
-        return element.getEventTime();
-      }
-    };
+  private static class SimpleBoundedOutOfOrdernessTimestampExtractor<T extends Transaction>
+      extends BoundedOutOfOrdernessTimestampExtractor<T> {
+
+    public SimpleBoundedOutOfOrdernessTimestampExtractor(int outOfOrderdnessMillis) {
+      super(Time.of(outOfOrderdnessMillis, TimeUnit.MILLISECONDS));
+    }
+
+    @Override
+    public long extractTimestamp(T element) {
+      return element.getEventTime();
+    }
   }
 
   private void configureRestartStrategy(

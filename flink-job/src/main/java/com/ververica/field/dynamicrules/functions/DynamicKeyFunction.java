@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,18 +38,27 @@ import org.apache.flink.metrics.Gauge;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
 
+/** Implements dynamic data partitioning based on a set of broadcasted rules. */
 @Slf4j
 public class DynamicKeyFunction
     extends BroadcastProcessFunction<Transaction, Rule, Keyed<Transaction, String, Integer>> {
 
-  private RuleCounterGuage ruleCounterGuage;
+  private RuleCounterGauge ruleCounterGauge;
 
   @Override
   public void open(Configuration parameters) {
-    ruleCounterGuage = new RuleCounterGuage();
-    getRuntimeContext().getMetricGroup().gauge("numberOfActiveRules", ruleCounterGuage);
+    ruleCounterGauge = new RuleCounterGauge();
+    getRuntimeContext().getMetricGroup().gauge("numberOfActiveRules", ruleCounterGauge);
   }
 
+  /**
+   * Processes one @see {com.ververica.field.dynamicrules.Transaction} at-a-time and
+   *
+   * @param event incoming Transaction records
+   * @param ctx Flink context
+   * @param out
+   * @throws Exception
+   */
   @Override
   public void processElement(
       Transaction event, ReadOnlyContext ctx, Collector<Keyed<Transaction, String, Integer>> out)
@@ -58,6 +68,12 @@ public class DynamicKeyFunction
     forkEventForEachGroupingKey(event, rulesState, out);
   }
 
+  /**
+   * @param event
+   * @param rulesState
+   * @param out
+   * @throws Exception
+   */
   private void forkEventForEachGroupingKey(
       Transaction event,
       ReadOnlyBroadcastState<Integer, Rule> rulesState,
@@ -71,7 +87,7 @@ public class DynamicKeyFunction
               event, KeysExtractor.getKey(rule.getGroupingKeyNames(), event), rule.getRuleId()));
       ruleCounter++;
     }
-    ruleCounterGuage.setValue(ruleCounter);
+    ruleCounterGauge.setValue(ruleCounter);
   }
 
   @Override
@@ -100,7 +116,7 @@ public class DynamicKeyFunction
     }
   }
 
-  private static class RuleCounterGuage implements Gauge<Integer> {
+  private static class RuleCounterGauge implements Gauge<Integer> {
 
     private int value = 0;
 

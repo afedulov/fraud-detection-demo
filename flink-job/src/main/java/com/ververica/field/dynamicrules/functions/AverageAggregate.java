@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,7 +25,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
  * The accumulator is used to keep a running sum and a count. The {@code getResult} method computes
  * the average.
  */
-public class AverageAggregate implements AggregateFunction<Long, Tuple2<Long, Long>, String> {
+public class AverageAggregate implements AggregateFunction<Long, Tuple2<Long, Long>, Double> {
   @Override
   public Tuple2<Long, Long> createAccumulator() {
     return new Tuple2<>(0L, 0L);
@@ -36,8 +37,8 @@ public class AverageAggregate implements AggregateFunction<Long, Tuple2<Long, Lo
   }
 
   @Override
-  public String getResult(Tuple2<Long, Long> accumulator) {
-    return String.valueOf(((double) accumulator.f0) / accumulator.f1);
+  public Double getResult(Tuple2<Long, Long> accumulator) {
+    return ((double) accumulator.f0) / accumulator.f1;
   }
 
   @Override

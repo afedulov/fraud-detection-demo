@@ -1,12 +1,13 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -46,7 +47,7 @@ import org.apache.flink.metrics.MeterView;
 import org.apache.flink.streaming.api.functions.co.KeyedBroadcastProcessFunction;
 import org.apache.flink.util.Collector;
 
-// TODO: For a more generic implementation consider using a composite key instead of String
+/** Implements main rule evaluation and alerting logic. */
 @Slf4j
 public class DynamicRuleFunction
     extends KeyedBroadcastProcessFunction<
@@ -55,8 +56,8 @@ public class DynamicRuleFunction
   private static final String COUNT = "COUNT_FLINK";
   private static final String COUNT_WITH_RESET = "COUNT_WITH_RESET_FLINK";
 
-  public final int WIDEST_RULE_KEY = Integer.MIN_VALUE;
-  public final int CLEAR_STATE_COMMAND_KEY = Integer.MIN_VALUE + 1;
+  private static int WIDEST_RULE_KEY = Integer.MIN_VALUE;
+  private static int CLEAR_STATE_COMMAND_KEY = Integer.MIN_VALUE + 1;
 
   private transient MapState<Long, Set<Transaction>> windowState;
   private Meter alertMeter;
@@ -85,15 +86,15 @@ public class DynamicRuleFunction
 
     addToStateValuesSet(windowState, currentEventTime, value.getWrapped());
 
-    Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());
-    if (rule == null) {
-      log.error("Rule with {} does not exist", value.getId());
-    }
-
     long ingestionTime = value.getWrapped().getIngestionTimestamp();
     ctx.output(Descriptors.latencySinkTag, System.currentTimeMillis() - ingestionTime);
 
-    if (noRuleAvailable(rule)) return;
+    Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());
+
+    if (noRuleAvailable(rule)) {
+      log.error("Rule with ID {} does not exist", value.getId());
+      return;
+    }
 
     if (rule.getRuleState() == Rule.RuleState.ACTIVE) {
       Long windowStartForEvent = rule.getWindowStartFor(currentEventTime);
@@ -156,7 +157,6 @@ public class DynamicRuleFunction
         }
         break;
       case CLEAR_STATE_ALL:
-        //        rulesState.put(CLEAR_STATE_COMMAND_KEY, command);
         ctx.applyToKeyedState(windowStateDescriptor, (key, state) -> state.clear());
         break;
       case CLEAR_STATE_ALL_STOP:
@@ -189,22 +189,16 @@ public class DynamicRuleFunction
     } else {
       for (Transaction event : inWindow) {
         BigDecimal aggregatedValue =
-            FieldsExtractor.getBigDecimalByName(
-                rule.getAggregateFieldName(),
-                event); // Should be double or BigDecimal in the first place
+            FieldsExtractor.getBigDecimalByName(rule.getAggregateFieldName(), event);
         aggregator.add(aggregatedValue);
       }
     }
   }
 
   private boolean noRuleAvailable(Rule rule) {
-    // This happens if the BroadcastState in this CoProcessFunction was updated before it was
-    // updated in `DynamicKeyFunction`
-    // TODO Maybe we should consider sending the whole Rule Object with each event to avoid this
-    // race condition.
+    // This could happen if the BroadcastState in this CoProcessFunction was updated after it was
+    // updated and used in `DynamicKeyFunction`
     if (rule == null) {
-      log.info(
-          "Rule for ID {} was not found. Ignoring rule for this transaction. This should only happen close to an update to a rule.");
       return true;
     }
     return false;
@@ -214,12 +208,13 @@ public class DynamicRuleFunction
       throws Exception {
     Rule widestWindowRule = broadcastState.get(WIDEST_RULE_KEY);
     if (widestWindowRule != null && widestWindowRule.getRuleState() == Rule.RuleState.ACTIVE) {
-      if (widestWindowRule == null || widestWindowRule.getWindowMillis() < rule.getWindowMillis()) {
+      if (widestWindowRule.getWindowMillis() < rule.getWindowMillis()) {
         broadcastState.put(WIDEST_RULE_KEY, rule);
       }
     }
   }
 
+  @Override
   public void onTimer(final long timestamp, final OnTimerContext ctx, final Collector<Alert> out)
       throws Exception {
 
@@ -230,8 +225,6 @@ public class DynamicRuleFunction
     Optional<Long> cleanupEventTimeThreshold =
         cleanupEventTimeWindow.map(window -> timestamp - window);
 
-    // TODO: add maximum allowed widest window instead (force cleanup, even if widest rule is
-    // inactive)?
     cleanupEventTimeThreshold.ifPresent(this::evictAgedElementsFromWindow);
   }
 

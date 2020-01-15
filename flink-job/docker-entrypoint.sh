@@ -18,6 +18,8 @@
 # limitations under the License.
 ################################################################################
 
+# Ported from Apache Flink project
+
 ### If unspecified, the hostname of the container is taken as the JobManager address
 FLINK_HOME=${FLINK_HOME:-"/opt/flink/bin"}
 
