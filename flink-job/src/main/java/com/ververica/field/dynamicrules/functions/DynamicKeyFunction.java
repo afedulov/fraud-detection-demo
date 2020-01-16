@@ -51,14 +51,6 @@ public class DynamicKeyFunction
     getRuntimeContext().getMetricGroup().gauge("numberOfActiveRules", ruleCounterGauge);
   }
 
-  /**
-   * Processes one @see {com.ververica.field.dynamicrules.Transaction} at-a-time and
-   *
-   * @param event incoming Transaction records
-   * @param ctx Flink context
-   * @param out
-   * @throws Exception
-   */
   @Override
   public void processElement(
       Transaction event, ReadOnlyContext ctx, Collector<Keyed<Transaction, String, Integer>> out)
@@ -68,12 +60,6 @@ public class DynamicKeyFunction
     forkEventForEachGroupingKey(event, rulesState, out);
   }
 
-  /**
-   * @param event
-   * @param rulesState
-   * @param out
-   * @throws Exception
-   */
   private void forkEventForEachGroupingKey(
       Transaction event,
       ReadOnlyBroadcastState<Integer, Rule> rulesState,
