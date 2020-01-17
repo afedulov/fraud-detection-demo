@@ -178,7 +178,7 @@ export const Transactions = React.memo(
                 </div>
               </TransactionsOverlay>
               <TransactionsHeading className="px-2 py-1">
-                <span>Payee</span>
+                <span>Payer</span>
                 <span>Amount</span>
                 <span>Beneficiary</span>
               </TransactionsHeading>
