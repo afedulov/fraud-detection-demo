@@ -45,24 +45,25 @@ const sampleRules: {
     windowMinutes: 43200,
     ruleState: "ACTIVE",
   },
-  2: {
-    aggregateFieldName: "COUNT_FLINK",
+   2: {
+     aggregateFieldName: "paymentAmount",
+     aggregatorFunctionType: "SUM",
+     groupingKeyNames: ["beneficiaryId"],
+     limit: 10000000,
+     limitOperatorType: "GREATER_EQUAL",
+     windowMinutes: 1440,
+     ruleState: "ACTIVE",
+   },
+  3: {
+    aggregateFieldName: "COUNT_WITH_RESET_FLINK",
     aggregatorFunctionType: "SUM",
     groupingKeyNames: ["paymentType"],
-    limit: 300,
-    limitOperatorType: "LESS",
-    windowMinutes: 1440,
-    ruleState: "ACTIVE",
-  },
-  3: {
-    aggregateFieldName: "paymentAmount",
-    aggregatorFunctionType: "SUM",
-    groupingKeyNames: ["beneficiaryId"],
-    limit: 10000000,
+    limit: 100,
     limitOperatorType: "GREATER_EQUAL",
     windowMinutes: 1440,
     ruleState: "ACTIVE",
   },
+
 };
 
 const keywords = ["beneficiaryId", "payeeId", "paymentAmount", "paymentType"];
