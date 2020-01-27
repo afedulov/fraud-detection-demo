@@ -20,7 +20,7 @@ package com.ververica.field.dynamicrules;
 
 import com.ververica.field.dynamicrules.RulesEvaluator.Descriptors;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
-import com.ververica.field.dynamicrules.functions.DynamicRuleFunction;
+import com.ververica.field.dynamicrules.functions.DynamicAlertFunction;
 import com.ververica.field.dynamicrules.util.AssertUtils;
 import com.ververica.field.dynamicrules.util.BroadcastStreamKeyedOperatorTestHarness;
 import com.ververica.field.dynamicrules.util.BroadcastStreamNonKeyedOperatorTestHarness;
@@ -106,7 +106,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(),
+                new DynamicAlertFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,
@@ -149,7 +149,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(),
+                new DynamicAlertFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,
@@ -194,7 +194,7 @@ public class RulesEvaluatorTest {
             String, Keyed<Transaction, String, Integer>, Rule, Alert>
         testHarness =
             BroadcastStreamKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicRuleFunction(),
+                new DynamicAlertFunction(),
                 in -> (in.getKey()),
                 null,
                 BasicTypeInfo.STRING_TYPE_INFO,

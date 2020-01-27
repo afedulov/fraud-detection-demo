@@ -49,7 +49,7 @@ import org.apache.flink.util.Collector;
 
 /** Implements main rule evaluation and alerting logic. */
 @Slf4j
-public class DynamicRuleFunction
+public class DynamicAlertFunction
     extends KeyedBroadcastProcessFunction<
         String, Keyed<Transaction, String, Integer>, Rule, Alert> {
 

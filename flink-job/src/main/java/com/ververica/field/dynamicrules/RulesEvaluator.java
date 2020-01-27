@@ -28,7 +28,7 @@ import static com.ververica.field.config.Parameters.SOURCE_PARALLELISM;
 import com.ververica.field.config.Config;
 import com.ververica.field.dynamicrules.functions.AverageAggregate;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
-import com.ververica.field.dynamicrules.functions.DynamicRuleFunction;
+import com.ververica.field.dynamicrules.functions.DynamicAlertFunction;
 import com.ververica.field.dynamicrules.sinks.AlertsSink;
 import com.ververica.field.dynamicrules.sinks.CurrentRulesSink;
 import com.ververica.field.dynamicrules.sinks.LatencySink;
@@ -89,7 +89,7 @@ public class RulesEvaluator {
             .name("Dynamic Partitioning Function")
             .keyBy((keyed) -> keyed.getKey())
             .connect(rulesStream)
-            .process(new DynamicRuleFunction())
+            .process(new DynamicAlertFunction())
             .uid("DynamicRuleFunction")
             .name("Dynamic Rule Evaluation Function");
 
