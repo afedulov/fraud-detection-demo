@@ -51,7 +51,7 @@ public class RulesEvaluatorTest {
             Transaction, Rule, Keyed<Transaction, String, Integer>>
         testHarness =
             BroadcastStreamNonKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicKeyFunction(), Descriptors.keysDescriptor)) {
+                new DynamicKeyFunction(), Descriptors.rulesDescriptor)) {
 
       testHarness.processElement2(new StreamRecord<>(rule1, 12L));
       testHarness.processElement1(new StreamRecord<>(event1, 15L));
@@ -74,12 +74,12 @@ public class RulesEvaluatorTest {
             Transaction, Rule, Keyed<Transaction, String, Integer>>
         testHarness =
             BroadcastStreamNonKeyedOperatorTestHarness.getInitializedTestHarness(
-                new DynamicKeyFunction(), Descriptors.keysDescriptor)) {
+                new DynamicKeyFunction(), Descriptors.rulesDescriptor)) {
 
       testHarness.processElement2(new StreamRecord<>(rule1, 12L));
 
       BroadcastState<Integer, Rule> broadcastState =
-          testHarness.getBroadcastState(Descriptors.keysDescriptor);
+          testHarness.getBroadcastState(Descriptors.rulesDescriptor);
 
       Map<Integer, Rule> expectedState = new HashMap<>();
       expectedState.put(rule1.getRuleId(), rule1);

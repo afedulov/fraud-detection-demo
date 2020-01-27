@@ -56,7 +56,7 @@ public class DynamicKeyFunction
       Transaction event, ReadOnlyContext ctx, Collector<Keyed<Transaction, String, Integer>> out)
       throws Exception {
     ReadOnlyBroadcastState<Integer, Rule> rulesState =
-        ctx.getBroadcastState(Descriptors.keysDescriptor);
+        ctx.getBroadcastState(Descriptors.rulesDescriptor);
     forkEventForEachGroupingKey(event, rulesState, out);
   }
 
@@ -81,7 +81,7 @@ public class DynamicKeyFunction
       Rule rule, Context ctx, Collector<Keyed<Transaction, String, Integer>> out) throws Exception {
     log.info("{}", rule);
     BroadcastState<Integer, Rule> broadcastState =
-        ctx.getBroadcastState(Descriptors.keysDescriptor);
+        ctx.getBroadcastState(Descriptors.rulesDescriptor);
     handleRuleBroadcast(rule, broadcastState);
     if (rule.getRuleState() == RuleState.CONTROL) {
       handleControlCommand(rule.getControlType(), broadcastState);

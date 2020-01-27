@@ -75,22 +75,19 @@ public class RulesEvaluator {
     DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
     DataStream<Transaction> transactions = getTransactionsStream(env);
 
-    // (Duplication is required because there is currently no way to cross-access broadcast state
-    // between process functions)
-    BroadcastStream<Rule> keysStream = rulesUpdateStream.broadcast(Descriptors.keysDescriptor);
     BroadcastStream<Rule> rulesStream = rulesUpdateStream.broadcast(Descriptors.rulesDescriptor);
 
     // Processing pipeline setup
     DataStream<Alert> alerts =
         transactions
-            .connect(keysStream)
+            .connect(rulesStream)
             .process(new DynamicKeyFunction())
             .uid("DynamicKeyFunction")
             .name("Dynamic Partitioning Function")
             .keyBy((keyed) -> keyed.getKey())
             .connect(rulesStream)
             .process(new DynamicAlertFunction())
-            .uid("DynamicRuleFunction")
+            .uid("DynamicAlertFunction")
             .name("Dynamic Rule Evaluation Function");
 
     DataStream<String> allRuleEvaluations =
@@ -202,10 +199,6 @@ public class RulesEvaluator {
   }
 
   public static class Descriptors {
-    public static final MapStateDescriptor<Integer, Rule> keysDescriptor =
-        new MapStateDescriptor<>(
-            "keys", BasicTypeInfo.INT_TYPE_INFO, TypeInformation.of(Rule.class));
-
     public static final MapStateDescriptor<Integer, Rule> rulesDescriptor =
         new MapStateDescriptor<>(
             "rules", BasicTypeInfo.INT_TYPE_INFO, TypeInformation.of(Rule.class));
