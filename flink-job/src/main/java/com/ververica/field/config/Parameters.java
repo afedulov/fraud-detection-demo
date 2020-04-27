@@ -94,10 +94,13 @@ public class Parameters {
   public static final Param<Boolean> LOCAL_EXECUTION = Param.bool("local", false);
 
   public static final Param<Integer> SOURCE_PARALLELISM = Param.integer("source-parallelism", 2);
+
+  public static final Param<Boolean> ENABLE_CHECKPOINTS = Param.bool("checkpoints", false);
+
   public static final Param<Integer> CHECKPOINT_INTERVAL =
       Param.integer("checkpoint-interval", 60_000_0);
   public static final Param<Integer> MIN_PAUSE_BETWEEN_CHECKPOINTS =
-      Param.integer("min-pause-btwn-checkpoints", 60_000_0);
+      Param.integer("min-pause-btwn-checkpoints", 10000);
   public static final Param<Integer> OUT_OF_ORDERNESS = Param.integer("out-of-orderdness", 500);
 
   //  List<Param> list = Arrays.asList(new String[]{"foo", "bar"});
@@ -132,5 +135,6 @@ public class Parameters {
           MIN_PAUSE_BETWEEN_CHECKPOINTS,
           OUT_OF_ORDERNESS);
 
-  public static final List<Param<Boolean>> BOOL_PARAMS = Arrays.asList(LOCAL_EXECUTION);
+  public static final List<Param<Boolean>> BOOL_PARAMS =
+      Arrays.asList(LOCAL_EXECUTION, ENABLE_CHECKPOINTS);
 }
