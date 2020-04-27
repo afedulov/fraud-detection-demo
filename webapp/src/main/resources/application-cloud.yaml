@@ -1,0 +1,9 @@
+kafka:
+  bootstrap-servers: kafka-shared-cp-kafka-headless.kafka.svc:9092
+
+security.auth.enabled: true
+
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: kafka-shared-cp-kafka-headless.kafka.svc:9092
