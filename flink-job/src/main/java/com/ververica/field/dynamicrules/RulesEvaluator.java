@@ -19,6 +19,7 @@
 package com.ververica.field.dynamicrules;
 
 import static com.ververica.field.config.Parameters.CHECKPOINT_INTERVAL;
+import static com.ververica.field.config.Parameters.ENABLE_CHECKPOINTS;
 import static com.ververica.field.config.Parameters.LOCAL_EXECUTION;
 import static com.ververica.field.config.Parameters.MIN_PAUSE_BETWEEN_CHECKPOINTS;
 import static com.ververica.field.config.Parameters.OUT_OF_ORDERNESS;
@@ -67,9 +68,17 @@ public class RulesEvaluator {
     RulesSource.Type rulesSourceType = getRulesSourceType();
 
     boolean isLocal = config.get(LOCAL_EXECUTION);
+    boolean enableCheckpoints = config.get(ENABLE_CHECKPOINTS);
+    int checkpointsInterval = config.get(CHECKPOINT_INTERVAL);
+    int minPauseBtwnCheckpoints = config.get(CHECKPOINT_INTERVAL);
 
     // Environment setup
     StreamExecutionEnvironment env = configureStreamExecutionEnvironment(rulesSourceType, isLocal);
+
+    if (enableCheckpoints) {
+      env.enableCheckpointing(checkpointsInterval);
+      env.getCheckpointConfig().setMinPauseBetweenCheckpoints(minPauseBtwnCheckpoints);
+    }
 
     // Streams setup
     DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);

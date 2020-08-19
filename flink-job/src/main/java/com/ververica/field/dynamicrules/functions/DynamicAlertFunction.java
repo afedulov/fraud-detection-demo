@@ -207,10 +207,18 @@ public class DynamicAlertFunction
   private void updateWidestWindowRule(Rule rule, BroadcastState<Integer, Rule> broadcastState)
       throws Exception {
     Rule widestWindowRule = broadcastState.get(WIDEST_RULE_KEY);
-    if (widestWindowRule != null && widestWindowRule.getRuleState() == Rule.RuleState.ACTIVE) {
-      if (widestWindowRule.getWindowMillis() < rule.getWindowMillis()) {
-        broadcastState.put(WIDEST_RULE_KEY, rule);
-      }
+
+    if(rule.getRuleState() != Rule.RuleState.ACTIVE){
+      return;
+    }
+
+    if (widestWindowRule == null) {
+      broadcastState.put(WIDEST_RULE_KEY, rule);
+      return;
+    }
+
+    if (widestWindowRule.getWindowMillis() < rule.getWindowMillis()) {
+      broadcastState.put(WIDEST_RULE_KEY, rule);
     }
   }
 

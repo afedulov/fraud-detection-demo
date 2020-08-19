@@ -33,14 +33,6 @@ plugins {
     id "com.github.sherter.google-java-format" version "0.8"
 }
 
-
-// artifact properties
-group = 'com.ververica.field.dynamicrules'
-version = ''
-jar.archiveName = "${jar.baseName}.${jar.extension}"
-mainClassName = 'com.ververica.field.dynamicrules.Main'
-description = """Dynamic Fraud Detection Demo"""
-
 ext {
     javaVersion = '1.8'
     flinkVersion = '1.9.0'
@@ -51,6 +43,13 @@ ext {
     mockitoVersion = '1.10.19'
     junitVersion = '4.12'
 }
+
+// artifact properties
+group = 'com.ververica.field.dynamicrules'
+version = '1.2'
+jar.archiveName = "${jar.baseName}-${version}-flink-${flinkVersion}.${jar.extension}"
+mainClassName = 'com.ververica.field.dynamicrules.Main'
+description = """Dynamic Fraud Detection Demo"""
 
 sourceCompatibility = javaVersion
 targetCompatibility = javaVersion
@@ -152,6 +151,7 @@ configurations { all*.exclude group: 'org.apache.logging.log4j', module: 'log4j-
 
 shadowJar {
     configurations = [project.configurations.flinkShadowJar]
+    archiveName = "${jar.baseName}-${version}-flink-${flinkVersion}-deploy.${jar.extension}"
 }
 
 task resolveDependencies {

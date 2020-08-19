@@ -4,26 +4,20 @@ WORKDIR /home/gradle/app/
 COPY build.gradle settings.gradle ./
 COPY gradlew ./
 COPY gradle gradle
-# Cuase download and cache of verifyGoogleJavaFormat dependency
+# To cause download and cache of verifyGoogleJavaFormat dependency
 RUN echo "class Dummy {}" > Dummy.java
 # download dependencies
 RUN ./gradlew build
 COPY . .
 RUN rm Dummy.java
 RUN ./gradlew build
-
-
-# RUN gradle --no-daemon resolveDependencies
-# COPY src src
-# RUN gradle --no-daemon build
+RUN mv /home/gradle/app/build/libs/dynamic-fraud-detection-demo*-deploy.jar /home/gradle/app/build/libs/dynamic-fraud-detection-demo-deploy.jar
 
 # ---
 
 FROM flink:1.8.2
 
-# # COPY --from=job-build /home/gradle/work/build/dynamic-fraud-detection-demo.jar lib/job.jar
-COPY --from=job-build /home/gradle/app/build/libs/dynamic-fraud-detection-demo-all.jar lib/job.jar
-# # COPY build/libs/dynamic-fraud-detection-demo.jar lib/job.jar
+COPY --from=job-build /home/gradle/app/build/libs/dynamic-fraud-detection-demo-deploy.jar lib/job.jar
 COPY docker-entrypoint.sh /
 
 USER flink
