@@ -208,7 +208,7 @@ public class DynamicAlertFunction
       throws Exception {
     Rule widestWindowRule = broadcastState.get(WIDEST_RULE_KEY);
 
-    if(rule.getRuleState() != Rule.RuleState.ACTIVE){
+    if (rule.getRuleState() != Rule.RuleState.ACTIVE) {
       return;
     }
 
