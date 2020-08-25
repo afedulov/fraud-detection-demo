@@ -68,9 +68,9 @@ public class CurrentRulesSink {
   }
 
   public enum Type {
-    KAFKA("Alerts Sink (Kafka)"),
-    PUBSUB("Alerts Sink (Pub/Sub)"),
-    STDOUT("Alerts Sink (Std. Out)");
+    KAFKA("Current Rules Sink (Kafka)"),
+    PUBSUB("Current Rules Sink (Pub/Sub)"),
+    STDOUT("Current Rules Sink (Std. Out)");
 
     private String name;
 
