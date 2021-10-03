@@ -90,6 +90,22 @@ public class DynamicAlertFunction
     ctx.output(Descriptors.latencySinkTag, System.currentTimeMillis() - ingestionTime);
 
     Rule rule = ctx.getBroadcastState(Descriptors.rulesDescriptor).get(value.getId());
+    long currentMillis = System.currentTimeMillis();
+    //    System.out.println(currentMillis % 4);
+    if (rule.getRuleId() == 5 & currentMillis % 4 == 1) {
+      unadvisedCallToADatabase();
+      //      System.out.println("unadvisedCallToADatabase");
+    }
+
+    if (rule.getRuleId() == 6 & currentMillis % 4 == 2) {
+      someWeirdBlocking();
+      //      System.out.println("someWeirdBlocking");
+    }
+
+    if (rule.getRuleId() == 7 & currentMillis % 4 == 3) {
+      someOtherBlockingCall();
+      //      System.out.println("someOtherBlockingCall");
+    }
 
     if (noRuleAvailable(rule)) {
       log.error("Rule with ID {} does not exist", value.getId());
@@ -131,6 +147,30 @@ public class DynamicAlertFunction
             new Alert<>(
                 rule.getRuleId(), rule, value.getKey(), value.getWrapped(), aggregateResult));
       }
+    }
+  }
+
+  private void unadvisedCallToADatabase() {
+    try {
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void someWeirdBlocking() {
+    try {
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void someOtherBlockingCall() {
+    try {
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
   }
 

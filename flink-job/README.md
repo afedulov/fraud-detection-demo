@@ -15,10 +15,10 @@ rule_id, (rule_state), (aggregation keys), (unique keys), (aggregateFieldName fi
 
 ##### Examples:
 
-1,(active),(paymentType),,(paymentAmount),(SUM),(>),(50),(20)
-1,(delete),(paymentType),,(paymentAmount),(SUM),(>),(50),(20)
-2,(active),(payeeId),,(paymentAmount),(SUM),(>),(10),(20)
-2,(pause),(payeeId),,(paymentAmount),(SUM),(>),(10),(20)
+1,(active),(paymentType),,(paymentAmount),(SUM),(>),(50),(20)  
+1,(delete),(paymentType),,(paymentAmount),(SUM),(>),(50),(20)  
+2,(active),(payeeId),,(paymentAmount),(SUM),(>),(10),(20)  
+2,(pause),(payeeId),,(paymentAmount),(SUM),(>),(10),(20)  
 
 ##### Examples JSON:  
 { "ruleId": 1, "ruleState": "ACTIVE", "groupingKeyNames": ["paymentType"], "unique": [], "aggregateFieldName": "paymentAmount", "aggregatorFunctionType": "SUM","limitOperatorType": "GREATER","limit": 500, "windowMinutes": 20}

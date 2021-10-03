@@ -80,6 +80,7 @@ public class DynamicKeyFunction
   public void processBroadcastElement(
       Rule rule, Context ctx, Collector<Keyed<Transaction, String, Integer>> out) throws Exception {
     log.info("{}", rule);
+    System.out.println(rule);
     BroadcastState<Integer, Rule> broadcastState =
         ctx.getBroadcastState(Descriptors.rulesDescriptor);
     handleRuleBroadcast(rule, broadcastState);

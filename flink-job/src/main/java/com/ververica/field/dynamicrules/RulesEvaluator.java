@@ -27,18 +27,15 @@ import static com.ververica.field.config.Parameters.RULES_SOURCE;
 import static com.ververica.field.config.Parameters.SOURCE_PARALLELISM;
 
 import com.ververica.field.config.Config;
-import com.ververica.field.dynamicrules.functions.AverageAggregate;
 import com.ververica.field.dynamicrules.functions.DynamicAlertFunction;
 import com.ververica.field.dynamicrules.functions.DynamicKeyFunction;
 import com.ververica.field.dynamicrules.sinks.AlertsSink;
 import com.ververica.field.dynamicrules.sinks.CurrentRulesSink;
-import com.ververica.field.dynamicrules.sinks.LatencySink;
 import com.ververica.field.dynamicrules.sources.RulesSource;
 import com.ververica.field.dynamicrules.sources.TransactionsSource;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.flink.api.common.restartstrategy.RestartStrategies;
 import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
@@ -74,16 +71,19 @@ public class RulesEvaluator {
 
     // Environment setup
     StreamExecutionEnvironment env = configureStreamExecutionEnvironment(rulesSourceType, isLocal);
-
+    env.setParallelism(1);
     if (enableCheckpoints) {
       env.enableCheckpointing(checkpointsInterval);
       env.getCheckpointConfig().setMinPauseBetweenCheckpoints(minPauseBtwnCheckpoints);
     }
 
     // Streams setup
-    DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
+    //    DataStream<Rule> rulesUpdateStream = getRulesUpdateStream(env);
+    DataStream<Rule> rulesUpdateStream =
+        RulesSource.stringsStreamToRules(env.readTextFile("/home/alex/tmp/rules.txt"));
     DataStream<Transaction> transactions = getTransactionsStream(env);
 
+    //    rulesUpdateStream.print();
     BroadcastStream<Rule> rulesStream = rulesUpdateStream.broadcast(Descriptors.rulesDescriptor);
 
     // Processing pipeline setup
@@ -102,19 +102,20 @@ public class RulesEvaluator {
     DataStream<String> allRuleEvaluations =
         ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.demoSinkTag);
 
-    DataStream<Long> latency =
-        ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.latencySinkTag);
+    //    DataStream<Long> latency =
+    //        ((SingleOutputStreamOperator<Alert>)
+    // alerts).getSideOutput(Descriptors.latencySinkTag);
 
     DataStream<Rule> currentRules =
         ((SingleOutputStreamOperator<Alert>) alerts).getSideOutput(Descriptors.currentRulesSinkTag);
 
-    alerts.print().name("Alert STDOUT Sink");
-    allRuleEvaluations.print().setParallelism(1).name("Rule Evaluation Sink");
+    //    alerts.print().name("Alert STDOUT Sink");
+    //    allRuleEvaluations.print().setParallelism(1).name("Rule Evaluation Sink");
 
     DataStream<String> alertsJson = AlertsSink.alertsStreamToJson(alerts);
     DataStream<String> currentRulesJson = CurrentRulesSink.rulesStreamToJson(currentRules);
 
-    currentRulesJson.print();
+    //    currentRulesJson.print();
 
     alertsJson
         .addSink(AlertsSink.createAlertsSink(config))
@@ -122,12 +123,12 @@ public class RulesEvaluator {
         .name("Alerts JSON Sink");
     currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).setParallelism(1);
 
-    DataStream<String> latencies =
-        latency
-            .timeWindowAll(Time.seconds(10))
-            .aggregate(new AverageAggregate())
-            .map(String::valueOf);
-    latencies.addSink(LatencySink.createLatencySink(config));
+    //    DataStream<String> latencies =
+    //        latency
+    //            .timeWindowAll(Time.seconds(10))
+    //            .aggregate(new AverageAggregate())
+    //            .map(String::valueOf);
+    //    latencies.addSink(LatencySink.createLatencySink(config));
 
     env.execute("Fraud Detection Engine");
   }
@@ -197,9 +198,9 @@ public class RulesEvaluator {
       StreamExecutionEnvironment env, RulesSource.Type rulesSourceEnumType) {
     switch (rulesSourceEnumType) {
       case SOCKET:
-        env.setRestartStrategy(
-            RestartStrategies.fixedDelayRestart(
-                10, org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS)));
+        //        env.setRestartStrategy(
+        //            RestartStrategies.fixedDelayRestart(
+        //                10, org.apache.flink.api.common.time.Time.of(10, TimeUnit.SECONDS)));
         break;
       case KAFKA:
         // Default - unlimited restart strategy.

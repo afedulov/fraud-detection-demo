@@ -24,8 +24,10 @@ import static com.ververica.field.config.Parameters.STRING_PARAMS;
 
 import com.ververica.field.config.Config;
 import com.ververica.field.config.Parameters;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.java.utils.ParameterTool;
 
+@Slf4j
 public class Main {
 
   public static void main(String[] args) throws Exception {
