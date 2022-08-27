@@ -22,13 +22,13 @@ In order to run the demo locally, execute the following commands which build the
 git clone https://github.com/afedulov/fraud-detection-demo
 cd fraud-detection-demo
 docker build -t demo-fraud-webapp:latest -f webapp/webapp.Dockerfile webapp/
-docker build -t flink-job-fraud-demo:latest -f flink-job/Dockerfile flink-job/
+docker build -t flink-job-fraud-demo:latest -f flink-job/Dockerfile flink-job/ 
 docker-compose -f docker-compose-local-job.yaml up
 ```
 
 __Note__: Dependencies are stored in a cached Docker layer. If you later only modify the source code, not the dependencies, you can expect significantly shorter packaging times for the subsequent builds.
 
-When all components are up and running, go to `localhost:5656` in your browser.
+When all components are up and running, go to `localhost:5656` in your browser. You might want to click "Push to Flink" to send some sample rules to the Flink job for evaluation to see the alerts.
 
 __Note__: you might need to change exposed ports in _docker-compose-local-job.yaml_ in case of collisions.
 

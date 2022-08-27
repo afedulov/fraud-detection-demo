@@ -31,44 +31,67 @@ import com.ververica.field.dynamicrules.functions.RuleDeserializer;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.source.SocketTextStreamFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.gcp.pubsub.PubSubSource;
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011;
 
 public class RulesSource {
 
   private static final int RULES_STREAM_PARALLELISM = 1;
 
-  public static SourceFunction<String> createRulesSource(Config config) throws IOException {
+  public static DataStreamSource<String> initRulesSource(
+      Config config, StreamExecutionEnvironment env) throws IOException {
 
     String sourceType = config.get(RULES_SOURCE);
     RulesSource.Type rulesSourceType = RulesSource.Type.valueOf(sourceType.toUpperCase());
+    DataStreamSource<String> dataStreamSource;
 
     switch (rulesSourceType) {
       case KAFKA:
         Properties kafkaProps = KafkaUtils.initConsumerProperties(config);
         String rulesTopic = config.get(RULES_TOPIC);
-        FlinkKafkaConsumer011<String> kafkaConsumer =
-            new FlinkKafkaConsumer011<>(rulesTopic, new SimpleStringSchema(), kafkaProps);
-        kafkaConsumer.setStartFromLatest();
-        return kafkaConsumer;
+
+        KafkaSource<String> kafkaSource =
+            KafkaSource.<String>builder()
+                .setProperties(kafkaProps)
+                .setTopics(rulesTopic)
+                .setStartingOffsets(OffsetsInitializer.latest())
+                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .build();
+
+        // NOTE: Idiomatically, watermarks should be assigned here, but this done later
+        // because of the mix of the new Source (Kafka) and SourceFunction-based interfaces.
+        // TODO: refactor when FLIP-238 is added
+        dataStreamSource =
+            env.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Rules Kafka Source");
+        break;
       case PUBSUB:
-        return PubSubSource.<String>newBuilder()
-            .withDeserializationSchema(new SimpleStringSchema())
-            .withProjectName(config.get(GCP_PROJECT_NAME))
-            .withSubscriptionName(config.get(GCP_PUBSUB_RULES_SUBSCRIPTION))
-            .build();
+        PubSubSource<String> pubSubSourceFunction =
+            PubSubSource.<String>newBuilder()
+                .withDeserializationSchema(new SimpleStringSchema())
+                .withProjectName(config.get(GCP_PROJECT_NAME))
+                .withSubscriptionName(config.get(GCP_PUBSUB_RULES_SUBSCRIPTION))
+                .build();
+        dataStreamSource = env.addSource(pubSubSourceFunction);
+        break;
       case SOCKET:
-        return new SocketTextStreamFunction("localhost", config.get(SOCKET_PORT), "\n", -1);
+        SocketTextStreamFunction socketSourceFunction =
+            new SocketTextStreamFunction("localhost", config.get(SOCKET_PORT), "\n", -1);
+        dataStreamSource = env.addSource(socketSourceFunction);
+        break;
       default:
         throw new IllegalArgumentException(
             "Source \"" + rulesSourceType + "\" unknown. Known values are:" + Type.values());
     }
+    return dataStreamSource;
   }
 
   public static DataStream<Rule> stringsStreamToRules(DataStream<String> ruleStrings) {

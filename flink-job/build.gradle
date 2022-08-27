@@ -29,14 +29,14 @@ plugins {
     id 'java'
     id 'application'
     // shadow plugin to produce fat JARs
-    id 'com.github.johnrengelman.shadow' version '4.0.1'
-    id "com.github.sherter.google-java-format" version "0.8"
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id "com.github.sherter.google-java-format" version "0.9"
 }
 
 ext {
     javaVersion = '1.8'
-    flinkVersion = '1.9.0'
-    scalaBinaryVersion = '2.11'
+    flinkVersion = '1.15.1'
+    scalaBinaryVersion = '2.12'
     slf4jVersion = '1.7.7'
     log4jVersion = '2.10.0'
     scalaVersion = '2.11'
@@ -60,7 +60,7 @@ tasks.withType(JavaCompile) {
 applicationDefaultJvmArgs = ["-Dlog4j.configuration=log4j.properties"]
 
 wrapper {
-    gradleVersion = '4.4'
+    gradleVersion = '7.5.1'
 }
 
 // declare where to find the dependencies of your project
@@ -89,9 +89,9 @@ dependencies {
     // Compile-time dependencies that should NOT be part of the
     // shadow jar and are provided in the lib folder of Flink
     // --------------------------------------------------------------
-    compile "org.apache.flink:flink-java:${flinkVersion}"
-    compile "org.apache.flink:flink-streaming-java_${scalaBinaryVersion}:${flinkVersion}"
-    compile "org.apache.flink:flink-runtime-web_${scalaBinaryVersion}:${flinkVersion}"
+    implementation "org.apache.flink:flink-java:${flinkVersion}"
+    implementation "org.apache.flink:flink-streaming-java:${flinkVersion}"
+    implementation "org.apache.flink:flink-runtime-web:${flinkVersion}"
 
     // --------------------------------------------------------------
     // Dependencies that should be part of the shadow jar, e.g.
@@ -101,29 +101,30 @@ dependencies {
 
 
 
-    compile "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-api:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-core:$log4jVersion"
-    compile "org.apache.logging.log4j:log4j-jcl:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-api:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-core:$log4jVersion"
+    implementation "org.apache.logging.log4j:log4j-jcl:$log4jVersion"
 
 
     // Test dependencies here.
     // testCompile "junit:junit:4.12"
 
-    compile "junit:junit:$junitVersion"
-    compile "org.apache.flink:flink-test-utils_$scalaVersion:$flinkVersion"
-    compile "org.apache.flink:flink-streaming-java_$scalaVersion:$flinkVersion:tests"
-    compile "org.apache.flink:flink-runtime_$scalaVersion:$flinkVersion:tests"
-    compile "org.mockito:mockito-all:$mockitoVersion"
+    implementation "junit:junit:$junitVersion"
+    implementation "org.apache.flink:flink-test-utils:$flinkVersion"
+    implementation "org.apache.flink:flink-streaming-java:$flinkVersion:tests"
+    implementation "org.apache.flink:flink-runtime:$flinkVersion:tests"
+    implementation "org.mockito:mockito-all:$mockitoVersion"
 
-    //Project dependencies
-    compile "org.projectlombok:lombok:1.18.4"
-//    For Gradle 6 use:
-//    compileOnly 'org.projectlombok:lombok:1.18.10'
-//    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+//    For Gradle 7 use:
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
 
-    flinkShadowJar "org.apache.flink:flink-connector-kafka-0.11_$scalaBinaryVersion:$flinkVersion"
-    flinkShadowJar "org.apache.flink:flink-connector-gcp-pubsub_$scalaBinaryVersion:$flinkVersion"
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    flinkShadowJar "org.apache.flink:flink-connector-kafka:$flinkVersion"
+    flinkShadowJar "org.apache.flink:flink-connector-gcp-pubsub:$flinkVersion"
     flinkShadowJar group: 'com.google.cloud', name: 'google-cloud-pubsub', version: '1.51.0'
 }
 

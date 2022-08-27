@@ -12,7 +12,7 @@ COPY src/react-app-env.d.ts src
 RUN npm run build
 
 # --- Maven Build
-FROM maven:3.6.2-jdk-8-openj9 as maven-build
+FROM maven:3.8.6-openjdk-8 as maven-build
 WORKDIR /home/maven/work
 
 COPY pom.xml .

@@ -1,4 +1,4 @@
-FROM openjdk:8 AS job-build
+FROM openjdk:11 AS job-build
 WORKDIR /home/gradle/app/
 
 COPY build.gradle settings.gradle ./
@@ -15,7 +15,7 @@ RUN mv /home/gradle/app/build/libs/dynamic-fraud-detection-demo*-deploy.jar /hom
 
 # ---
 
-FROM flink:1.8.2
+FROM flink:1.15-java8
 
 COPY --from=job-build /home/gradle/app/build/libs/dynamic-fraud-detection-demo-deploy.jar lib/job.jar
 COPY docker-entrypoint.sh /

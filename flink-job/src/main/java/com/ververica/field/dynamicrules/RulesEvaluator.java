@@ -47,9 +47,9 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.util.OutputTag;
@@ -116,28 +116,30 @@ public class RulesEvaluator {
 
     currentRulesJson.print();
 
-    alertsJson
-        .addSink(AlertsSink.createAlertsSink(config))
-        .setParallelism(1)
-        .name("Alerts JSON Sink");
-    currentRulesJson.addSink(CurrentRulesSink.createRulesSink(config)).setParallelism(1);
+    DataStreamSink<String> alertsSink = AlertsSink.addAlertsSink(config, alertsJson);
+    alertsSink.setParallelism(1).name("Alerts JSON Sink");
+
+    DataStreamSink<String> currentRulesSink =
+        CurrentRulesSink.addRulesSink(config, currentRulesJson);
+    currentRulesSink.setParallelism(1);
 
     DataStream<String> latencies =
         latency
             .timeWindowAll(Time.seconds(10))
             .aggregate(new AverageAggregate())
             .map(String::valueOf);
-    latencies.addSink(LatencySink.createLatencySink(config));
+
+    DataStreamSink<String> latencySink = LatencySink.addLatencySink(config, latencies);
+    latencySink.name("Latency Sink");
 
     env.execute("Fraud Detection Engine");
   }
 
   private DataStream<Transaction> getTransactionsStream(StreamExecutionEnvironment env) {
     // Data stream setup
-    SourceFunction<String> transactionSource = TransactionsSource.createTransactionsSource(config);
     int sourceParallelism = config.get(SOURCE_PARALLELISM);
     DataStream<String> transactionsStringsStream =
-        env.addSource(transactionSource)
+        TransactionsSource.initTransactionsSource(config, env)
             .name("Transactions Source")
             .setParallelism(sourceParallelism);
     DataStream<Transaction> transactionsStream =
@@ -150,9 +152,10 @@ public class RulesEvaluator {
 
     RulesSource.Type rulesSourceEnumType = getRulesSourceType();
 
-    SourceFunction<String> rulesSource = RulesSource.createRulesSource(config);
     DataStream<String> rulesStrings =
-        env.addSource(rulesSource).name(rulesSourceEnumType.getName()).setParallelism(1);
+        RulesSource.initRulesSource(config, env)
+            .name(rulesSourceEnumType.getName())
+            .setParallelism(1);
     return RulesSource.stringsStreamToRules(rulesStrings);
   }
 
