@@ -1,3 +1,6 @@
+| NOTE: Older Docker images are not available for Apple silicon. If you face this issue, try this WIP branch https://github.com/afedulov/fraud-detection-demo/tree/with-1.15|
+| --- |
+
 ### Fraud Detection Demo with Apache Flink
 
 #### Requirements:
