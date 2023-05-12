@@ -3,6 +3,11 @@
 
 ### Fraud Detection Demo with Apache Flink
 
+This demo is related to a three parts blog post series on Advanced Flink Application Patterns:
+- https://flink.apache.org/2020/01/15/advanced-flink-application-patterns-vol.1-case-study-of-a-fraud-detection-system/
+- https://flink.apache.org/2020/03/24/advanced-flink-application-patterns-vol.2-dynamic-updates-of-application-logic/
+- https://flink.apache.org/2020/07/30/advanced-flink-application-patterns-vol.3-custom-window-processing/
+
 #### Requirements:
 Demo is bundled in a self-contained package. In order to build it from sources you will need:
 
